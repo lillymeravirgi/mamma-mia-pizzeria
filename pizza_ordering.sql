@@ -25,11 +25,15 @@ DROP TABLE IF EXISTS `customer`;
 CREATE TABLE `customer` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
-  `birthdate` date DEFAULT NULL,
-  `address` varchar(255) DEFAULT NULL,
-  `postcode` varchar(20) DEFAULT NULL,
+  `gender` enum('male','female','other') NOT NULL,
+  `birthdate` date NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `postcode` varchar(20) NOT NULL,
+  `city` varchar(50) DEFAULT NULL,
+  `country` varchar(50) DEFAULT NULL,
+  `pizzas_ordered_count` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +42,7 @@ CREATE TABLE `customer` (
 
 LOCK TABLES `customer` WRITE;
 /*!40000 ALTER TABLE `customer` DISABLE KEYS */;
-INSERT INTO `customer` VALUES (1,'Mario Rossi','1990-05-21','Via Roma 1, Rome','00100'),(2,'Anna Bianchi','1985-12-02','Corso Milano 10, Milan','20100');
+INSERT INTO `customer` VALUES (1,'Mario Rossi','male','1990-05-21','Via Roma 1','00100','Rome','Italy',0),(2,'Anna Bianchi','female','1985-12-02','Corso Milano 10','20100','Milan','Italy',0),(3,'John Smith','male','1992-03-14','Baker Street 221B','NW16XE','London','UK',0),(4,'Emma Johnson','female','1998-07-09','5th Avenue 101','10001','New York','USA',0),(5,'Lucas Müller','male','1988-11-23','Hauptstrasse 15','10115','Berlin','Germany',0);
 /*!40000 ALTER TABLE `customer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -50,11 +54,12 @@ DROP TABLE IF EXISTS `deliveryperson`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `deliveryperson` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `postcode` varchar(20) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id` int NOT NULL,
+  `postcode` varchar(20) NOT NULL,
+  `available` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `deliveryperson_ibfk_1` FOREIGN KEY (`id`) REFERENCES `staff` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -63,8 +68,90 @@ CREATE TABLE `deliveryperson` (
 
 LOCK TABLES `deliveryperson` WRITE;
 /*!40000 ALTER TABLE `deliveryperson` DISABLE KEYS */;
-INSERT INTO `deliveryperson` VALUES (1,'Luca','00100'),(2,'Giulia','20100');
+INSERT INTO `deliveryperson` VALUES (2,'00100',1),(3,'20100',1);
 /*!40000 ALTER TABLE `deliveryperson` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `dessert`
+--
+
+DROP TABLE IF EXISTS `dessert`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dessert` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `cost` decimal(5,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  CONSTRAINT `dessert_chk_1` CHECK ((`cost` > 0))
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dessert`
+--
+
+LOCK TABLES `dessert` WRITE;
+/*!40000 ALTER TABLE `dessert` DISABLE KEYS */;
+INSERT INTO `dessert` VALUES (1,'Tiramisu',3.50),(2,'Panna Cotta',3.00),(3,'Gelato',2.80);
+/*!40000 ALTER TABLE `dessert` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `discountcode`
+--
+
+DROP TABLE IF EXISTS `discountcode`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `discountcode` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) NOT NULL,
+  `is_valid` tinyint(1) NOT NULL DEFAULT '1',
+  `expiry_date` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `discountcode`
+--
+
+LOCK TABLES `discountcode` WRITE;
+/*!40000 ALTER TABLE `discountcode` DISABLE KEYS */;
+INSERT INTO `discountcode` VALUES (1,'WELCOME10',1,'2025-12-31'),(2,'BIRTHDAYFREE',1,'2026-01-01'),(3,'LOYALTY2025',1,'2025-12-31');
+/*!40000 ALTER TABLE `discountcode` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `drink`
+--
+
+DROP TABLE IF EXISTS `drink`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `drink` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `cost` decimal(5,2) NOT NULL,
+  `is_alcoholic` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  CONSTRAINT `drink_chk_1` CHECK ((`cost` > 0))
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `drink`
+--
+
+LOCK TABLES `drink` WRITE;
+/*!40000 ALTER TABLE `drink` DISABLE KEYS */;
+INSERT INTO `drink` VALUES (1,'Coca Cola',2.00,0),(2,'Sparkling Water',1.50,0),(3,'Beer',3.50,1),(4,'Red Wine',4.50,1);
+/*!40000 ALTER TABLE `drink` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -81,8 +168,9 @@ CREATE TABLE `ingredient` (
   `is_vegan` tinyint(1) NOT NULL,
   `is_vegetarian` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
   CONSTRAINT `ingredient_chk_1` CHECK ((`cost` > 0))
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -91,66 +179,8 @@ CREATE TABLE `ingredient` (
 
 LOCK TABLES `ingredient` WRITE;
 /*!40000 ALTER TABLE `ingredient` DISABLE KEYS */;
-INSERT INTO `ingredient` VALUES (1,'Tomato',0.50,1,1),(2,'Mozzarella',1.00,0,1),(3,'Pepperoni',1.50,0,0),(4,'Basil',0.20,1,1);
+INSERT INTO `ingredient` VALUES (1,'Tomato Sauce',0.50,1,1),(2,'Mozzarella',1.00,0,1),(3,'Pepperoni',1.50,0,0),(4,'Basil',0.20,1,1),(5,'Mushrooms',0.70,1,1),(6,'Onions',0.40,1,1),(7,'Ham',1.40,0,0),(8,'Pineapple',0.80,1,1),(9,'Olives',0.60,1,1),(10,'Vegan Cheese',1.20,1,1);
 /*!40000 ALTER TABLE `ingredient` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `order`
---
-
-DROP TABLE IF EXISTS `order`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `order` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `customer_id` int DEFAULT NULL,
-  `delivery_id` int DEFAULT NULL,
-  `total` decimal(8,2) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `customer_id` (`customer_id`),
-  KEY `delivery_id` (`delivery_id`),
-  CONSTRAINT `order_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`id`),
-  CONSTRAINT `order_ibfk_2` FOREIGN KEY (`delivery_id`) REFERENCES `deliveryperson` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `order`
---
-
-LOCK TABLES `order` WRITE;
-/*!40000 ALTER TABLE `order` DISABLE KEYS */;
-INSERT INTO `order` VALUES (1,1,1,10.00),(2,2,2,15.00);
-/*!40000 ALTER TABLE `order` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `orderitem`
---
-
-DROP TABLE IF EXISTS `orderitem`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `orderitem` (
-  `order_id` int NOT NULL,
-  `pizza_id` int NOT NULL,
-  `quantity` int NOT NULL,
-  PRIMARY KEY (`order_id`,`pizza_id`),
-  KEY `pizza_id` (`pizza_id`),
-  CONSTRAINT `orderitem_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `order` (`id`),
-  CONSTRAINT `orderitem_ibfk_2` FOREIGN KEY (`pizza_id`) REFERENCES `pizza` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `orderitem`
---
-
-LOCK TABLES `orderitem` WRITE;
-/*!40000 ALTER TABLE `orderitem` DISABLE KEYS */;
-INSERT INTO `orderitem` VALUES (1,1,1),(2,2,2);
-/*!40000 ALTER TABLE `orderitem` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -163,8 +193,9 @@ DROP TABLE IF EXISTS `pizza`;
 CREATE TABLE `pizza` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -173,7 +204,7 @@ CREATE TABLE `pizza` (
 
 LOCK TABLES `pizza` WRITE;
 /*!40000 ALTER TABLE `pizza` DISABLE KEYS */;
-INSERT INTO `pizza` VALUES (1,'Margherita'),(2,'Pepperoni');
+INSERT INTO `pizza` VALUES (3,'Funghi'),(4,'Hawaiian'),(1,'Margherita'),(2,'Pepperoni'),(5,'Vegan Special');
 /*!40000 ALTER TABLE `pizza` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -189,8 +220,8 @@ CREATE TABLE `pizzaingredient` (
   `ingredient_id` int NOT NULL,
   PRIMARY KEY (`pizza_id`,`ingredient_id`),
   KEY `ingredient_id` (`ingredient_id`),
-  CONSTRAINT `pizzaingredient_ibfk_1` FOREIGN KEY (`pizza_id`) REFERENCES `pizza` (`id`),
-  CONSTRAINT `pizzaingredient_ibfk_2` FOREIGN KEY (`ingredient_id`) REFERENCES `ingredient` (`id`)
+  CONSTRAINT `pizzaingredient_ibfk_1` FOREIGN KEY (`pizza_id`) REFERENCES `pizza` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `pizzaingredient_ibfk_2` FOREIGN KEY (`ingredient_id`) REFERENCES `ingredient` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -200,9 +231,71 @@ CREATE TABLE `pizzaingredient` (
 
 LOCK TABLES `pizzaingredient` WRITE;
 /*!40000 ALTER TABLE `pizzaingredient` DISABLE KEYS */;
-INSERT INTO `pizzaingredient` VALUES (1,1),(2,1),(1,2),(2,2),(2,3),(1,4);
+INSERT INTO `pizzaingredient` VALUES (1,1),(2,1),(3,1),(4,1),(5,1),(1,2),(2,2),(3,2),(4,2),(2,3),(1,4),(5,4),(3,5),(3,6),(4,7),(4,8),(5,9),(5,10);
 /*!40000 ALTER TABLE `pizzaingredient` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Temporary view structure for view `pizzamenu`
+--
+
+DROP TABLE IF EXISTS `pizzamenu`;
+/*!50001 DROP VIEW IF EXISTS `pizzamenu`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `pizzamenu` AS SELECT 
+ 1 AS `pizza_id`,
+ 1 AS `pizza_name`,
+ 1 AS `price`,
+ 1 AS `is_vegan`,
+ 1 AS `is_vegetarian`*/;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `staff`
+--
+
+DROP TABLE IF EXISTS `staff`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `staff` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `gender` enum('male','female','other') NOT NULL,
+  `role` enum('chef','driver','cashier','manager') NOT NULL,
+  `salary` decimal(8,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `staff_chk_1` CHECK ((`salary` >= 0))
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `staff`
+--
+
+LOCK TABLES `staff` WRITE;
+/*!40000 ALTER TABLE `staff` DISABLE KEYS */;
+INSERT INTO `staff` VALUES (1,'Giovanni Verdi','male','chef',2500.00),(2,'Luca Neri','male','driver',1800.00),(3,'Giulia Rosa','female','driver',1850.00),(4,'Sofia Blu','female','cashier',1700.00),(5,'Marco Gialli','male','manager',3000.00);
+/*!40000 ALTER TABLE `staff` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Final view structure for view `pizzamenu`
+--
+
+/*!50001 DROP VIEW IF EXISTS `pizzamenu`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = cp850 */;
+/*!50001 SET character_set_results     = cp850 */;
+/*!50001 SET collation_connection      = cp850_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `pizzamenu` AS select `p`.`id` AS `pizza_id`,`p`.`name` AS `pizza_name`,round(((sum(`i`.`cost`) * 1.4) * 1.09),2) AS `price`,min((case when (`i`.`is_vegan` = false) then 0 else 1 end)) AS `is_vegan`,min((case when (`i`.`is_vegetarian` = false) then 0 else 1 end)) AS `is_vegetarian` from ((`pizza` `p` join `pizzaingredient` `pi` on((`p`.`id` = `pi`.`pizza_id`))) join `ingredient` `i` on((`pi`.`ingredient_id` = `i`.`id`))) group by `p`.`id`,`p`.`name` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -213,4 +306,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-19 23:44:15
+-- Dump completed on 2025-09-24 13:22:06

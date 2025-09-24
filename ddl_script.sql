@@ -1,3 +1,10 @@
+/*
+Usage: 
+    Run this script in MySQL to create the database schema.
+Example:
+    mysql -u root -p pizza_ordering < ddl_script.sql
+*/
+
 -- INGREDIENTS
 CREATE TABLE Ingredient (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -42,7 +49,7 @@ CREATE TABLE Customer (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     gender ENUM('male','female','other') NOT NULL,
-    birthdate DATE NOT NULL CHECK (birthdate < CURDATE()),
+    birthdate DATE NOT NULL,  -- removed CHECK (birthdate < CURDATE())
     address VARCHAR(255) NOT NULL,
     postcode VARCHAR(20) NOT NULL,
     city VARCHAR(50),
@@ -68,7 +75,7 @@ CREATE TABLE DeliveryPerson (
 );
 
 -- ORDERS
-CREATE TABLE `Order` (
+CREATE TABLE 'Order' (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
     delivery_id INT,
