@@ -11,7 +11,7 @@ def connectDB():
 def getMenu(): 
     conn = connectDB()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM pizzamenu")
+    cursor.execute("SELECT * FROM PizzaMenu")
     rows = cursor.fetchall()
     cursor.execute("SELECT * FROM Drink")
     rows += cursor.fetchall()
@@ -56,14 +56,13 @@ def getPizzaInfo():
 
     query = """
     SELECT p.name,
-       ROUND(SUM(i.cost) * 1.4 * 1.02, 2) AS pizza_price,
-       MIN(i.is_vegetarian) AS is_vegetarian,
-       MIN(i.is_vegan) AS is_vegan
+        ROUND(SUM(i.cost) * 1.4 * 1.09+5,2) AS pizza_price,
+        MIN(i.is_vegetarian) AS is_vegetarian,
+        MIN(i.is_vegan) AS is_vegan
         FROM Pizza p
     JOIN PizzaIngredient pi ON p.id = pi.pizza_id
     JOIN Ingredient i ON pi.ingredient_id = i.id
     GROUP BY p.id, p.name;
-
     """
     cursor.execute(query)
     rows = cursor.fetchall()
@@ -71,4 +70,3 @@ def getPizzaInfo():
     cursor.close()
     conn.close()
     return rows
-
