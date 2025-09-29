@@ -36,7 +36,6 @@ INSERT INTO PizzaIngredient (pizza_id, ingredient_id) VALUES
 -- Vegan Special: Tomato, Vegan Cheese, Olives, Basil
 (5,1),(5,10),(5,9),(5,4);
 
-
 INSERT INTO Dessert (name, cost) VALUES
 ('Tiramisu', 3.50),
 ('Panna Cotta', 3.00),
@@ -55,17 +54,18 @@ INSERT INTO Customer (name, gender, birthdate, address, postcode, city, country)
 ('Emma Johnson', 'female', '1998-07-09', '5th Avenue 101', '10001', 'New York', 'USA'),
 ('Lucas Müller', 'male', '1988-11-23', 'Hauptstrasse 15', '10115', 'Berlin', 'Germany');
 
-INSERT INTO Staff (name, gender, role, salary) VALUES
-('Giovanni Verdi', 'male', 'chef', 2500.00),
-('Luca Neri', 'male', 'driver', 1800.00),
-('Giulia Rosa', 'female', 'driver', 1850.00),
-('Sofia Blu', 'female', 'cashier', 1700.00),
-('Marco Gialli', 'male', 'manager', 3000.00);
+INSERT INTO Staff (name, gender, role, salary, birthdate) VALUES
+('Giovanni Verdi', 'male', 'chef', 2500.00, '1980-06-15'),
+('Luca Neri', 'male', 'driver', 1800.00, '1990-02-20'),
+('Giulia Rosa', 'female', 'driver', 1850.00, '1992-08-05'),
+('Sofia Blu', 'female', 'manager', 3000.00, '1975-03-25'),
+('Marco Gialli', 'male', 'cashier', 1700.00, '1988-11-10');
 
 -- Delivery persons (linked to Staff IDs 2 and 3)
 INSERT INTO DeliveryPerson (id, postcode, available) VALUES
-(2, '00100', TRUE),
-(3, '20100', TRUE);
+(7, '00100', TRUE),  -- Luca Neri
+(8, '20100', TRUE);  -- Giulia Rosa
+
 
 INSERT INTO DiscountCode (code, is_valid, expiry_date) VALUES
 ('WELCOME10', TRUE, '2025-12-31'),
@@ -73,25 +73,62 @@ INSERT INTO DiscountCode (code, is_valid, expiry_date) VALUES
 ('LOYALTY2025', TRUE, '2025-12-31');
 
 INSERT INTO `Order` (customer_id, delivery_id, status, total) VALUES
-(1, 2, 'delivered', 10.00),
-(2, 3, 'in delivery', 15.00),
-(3, 2, 'pending', 20.00);
+-- 1-5: Mario Rossi
+(1, 2, 'delivered', 12.50),
+(1, 3, 'delivered', 18.20),
+(1, 2, 'in delivery', 9.80),
+(1, 3, 'pending', 15.00),
+(1, 2, 'cancelled', 7.50),
+
+-- 6-10: Anna Bianchi
+(2, 3, 'delivered', 20.00),
+(2, 2, 'in delivery', 14.50),
+(2, 3, 'prepared', 16.30),
+(2, 2, 'delivered', 25.00),
+(2, 3, 'pending', 11.80),
+
+-- 11-15: John Smith
+(3, 2, 'delivered', 22.50),
+(3, 3, 'in delivery', 17.00),
+(3, 2, 'delivered', 19.80),
+(3, 3, 'pending', 13.20),
+(3, 2, 'prepared', 21.50),
+
+-- 16-20: Emma Johnson
+(4, 3, 'delivered', 15.50),
+(4, 2, 'in delivery', 12.70),
+(4, 3, 'delivered', 23.00),
+(4, 2, 'pending', 18.40),
+(4, 3, 'cancelled', 9.50);
 
 INSERT INTO OrderItem (order_id, product_type, product_id, quantity) VALUES
--- Order 1 (Mario Rossi): 1 Margherita, 1 Coke
-(1, 'pizza', 1, 1),
-(1, 'drink', 1, 1),
+-- Mario Rossi orders
+(1, 'pizza', 1, 1), (1, 'drink', 1, 1), (1, 'dessert', 1, 1),
+(2, 'pizza', 2, 2), (2, 'drink', 3, 1),
+(3, 'pizza', 3, 1),
+(4, 'pizza', 5, 1), (4, 'dessert', 2, 1),
+(5, 'pizza', 1, 1),
 
--- Order 2 (Anna Bianchi): 2 Pepperoni, 1 Beer
-(2, 'pizza', 2, 2),
-(2, 'drink', 3, 1),
+-- Anna Bianchi orders
+(6, 'pizza', 2, 1), (6, 'drink', 2, 2),
+(7, 'pizza', 3, 2),
+(8, 'pizza', 4, 1), (8, 'dessert', 3, 1), (8, 'drink', 4, 1),
+(9, 'pizza', 5, 1), (9, 'drink', 1, 1),
+(10, 'pizza', 1, 1),
 
--- Order 3 (John Smith): 1 Vegan Special, 1 Gelato, 1 Water
-(3, 'pizza', 5, 1),
-(3, 'dessert', 3, 1),
-(3, 'drink', 2, 1);
+-- John Smith orders
+(11, 'pizza', 5, 1), (11, 'dessert', 3, 1),
+(12, 'pizza', 1, 2), (12, 'drink', 2, 1),
+(13, 'pizza', 2, 1), (13, 'dessert', 1, 1),
+(14, 'pizza', 3, 1), (14, 'drink', 1, 1),
+(15, 'pizza', 4, 1),
 
--- Link discounts to orders
+-- Emma Johnson orders
+(16, 'pizza', 1, 1), (16, 'dessert', 2, 1),
+(17, 'pizza', 2, 1), (17, 'drink', 3, 1),
+(18, 'pizza', 5, 1), (18, 'dessert', 3, 1),
+(19, 'pizza', 3, 2),
+(20, 'pizza', 4, 1), (20, 'drink', 1, 1);
+
 INSERT INTO OrderDiscount (order_id, discount_id) VALUES
-(1, 1),
-(3, 2);
+(1, 1), (2, 3), (6, 2), (11, 1), (18, 2);

@@ -63,7 +63,8 @@ CREATE TABLE Staff (
     name VARCHAR(100) NOT NULL,
     gender ENUM('male','female','other') NOT NULL,
     role ENUM('chef','driver','cashier','manager') NOT NULL,
-    salary DECIMAL(8,2) NOT NULL CHECK (salary >= 0)
+    salary DECIMAL(8,2) NOT NULL CHECK (salary >= 0),
+    birthdate DATE NOT NULL
 );
 
 -- DELIVERY PERSONS (subset of Staff, linked by shared ID)
@@ -75,13 +76,12 @@ CREATE TABLE DeliveryPerson (
 );
 
 -- ORDERS
-CREATE TABLE 'Order' (
+CREATE TABLE `Order` (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
     delivery_id INT,
     order_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('pending','in preparation','prepared','in delivery','delivered','cancelled')
-        NOT NULL DEFAULT 'pending',
+    status ENUM('pending','in preparation','prepared','in delivery','delivered','cancelled') NOT NULL DEFAULT 'pending',
     total DECIMAL(8,2),
     FOREIGN KEY(customer_id) REFERENCES Customer(id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY(delivery_id) REFERENCES DeliveryPerson(id) ON DELETE SET NULL ON UPDATE CASCADE
