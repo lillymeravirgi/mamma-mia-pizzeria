@@ -22,10 +22,10 @@ def menu():
                     item_name = key.split("__")[1]
                     order_items.append((item_name, int(qty)))
 
-        if order_items:
-            add_order(order_items)
+        #if order_items:
+            #add_order(order_items)
             
-            return redirect(url_for("userLogin"))
+          #  return redirect(url_for("userLogin"))
 
     return render_template("Menu.html", pizzas=pizzas, desserts=desserts,drinks=drinks)
 
