@@ -13,7 +13,7 @@ def menu():
     desserts = get_dessert_menu()
 
     if request.method == "POST":
-       
+        
         order_items = []
 
         for item_type in ["pizza", "drink", "dessert"]:
@@ -25,7 +25,7 @@ def menu():
         #if order_items:
             #add_order(order_items)
             
-          #  return redirect(url_for("userLogin"))
+            #  return redirect(url_for("userLogin"))
 
     return render_template("Menu.html", pizzas=pizzas, desserts=desserts,drinks=drinks)
 
