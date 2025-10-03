@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drinks Menu</title>
+</head>
+<body>
+    <h1>🥤 Drinks 🍷</h1>
+    <ul>
+        {% for name, cost, is_alcoholic in Drinks %}
+            <li>{{ name }}: €{{ cost }} {% if is_alcoholic %}🍷{% endif %} </li>
+        {% endfor %}
+        
+        🍷=alcoholic
+    </ul>
+</body>
+</html>

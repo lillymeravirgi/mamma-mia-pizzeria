@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pizzeria Menu</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #d35400; }
+        table { border-collapse: collapse; width: 60%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .tags { font-size: 0.9em; color: rgb(113, 177, 113); }
+
+        table {
+            border-collapse: collapse;
+            width: 50%;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #b36565d4;
+            padding: 6px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍕 Pizzeria Menu 🍕</h1>
+    <form method="POST">
+
+        <h2>Pizzas</h2>
+        <table>
+            <tr><th>Name</th><th>Price (€)</th><th>Vegetarisch🌱/Vegan🥦</th><th>Quantity</th></tr>
+            {% for pizza in pizzas %}
+            <tr>
+                <td>{{ pizza.name }}</td>
+                <td>{{ "%.2f"|format(pizza.pizza_price) }}</td>
+                <td class="tags">
+                    {% if pizza.is_vegetarian %}🌱{% endif %}
+                    {% if pizza.is_vegan %}🥦{% endif %}
+                </td>
+                <td>
+                    <input type="number" name="pizza__{{ pizza.name }}" min="0" value="0">
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Drinks</h2>
+        <table>
+            <tr><th>Name</th><th>Price (€)</th><th>Alcoholic</th><th>Quantity</th></tr>
+            {% for drink in drinks %}
+            <tr>
+                <td>{{ drink.name }}</td>
+                <td>{{ "%.2f"|format(drink.cost) }}</td>
+                <td class="tags">{% if drink.is_alcoholic %}🍷{% endif %}</td>
+                <td><input type="number" name="drink__{{ drink.name }}" min="0" value="0"></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Desserts</h2>
+        <table>
+            <tr><th>Name</th><th>Price (€)</th><th>Quantity</th></tr>
+            {% for dessert in desserts %}
+            <tr>
+                <td>{{ dessert.name }}</td>
+                <td>{{ "%.2f"|format(dessert.cost) }}</td>
+                <td><input type="number" name="dessert__{{ dessert.name }}" min="0" value="0"></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <button type="submit">Place Order</button>
+    </form>
+</body>
+</html>
