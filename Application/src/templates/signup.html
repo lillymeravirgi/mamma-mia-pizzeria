@@ -2,43 +2,108 @@
 <html>
 <head>
     <title>Sign Up - Mamma Mia Pizzeria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #d35400;
+            text-align: center;
+        }
+        .error {
+            color: red;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        form {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #d35400;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #e67e22;
+        }
+        a {
+            color: #d35400;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .required {
+            color: red;
+        }
+    </style>
 </head>
 <body>
-    <h1>Create Account</h1>
+    <h1>Create Your Account</h1>
     
     {% if error %}
-    <p style="color: red;">{{ error }}</p>
+    <p class="error">{{ error }}</p>
     {% endif %}
     
     <form method="POST">
-        <label>Name:</label>
-        <input type="text" name="name" required><br>
+        <label>Name: <span class="required">*</span></label>
+        <input type="text" name="name" required placeholder="Full name">
         
-        <label>Gender:</label>
+        <label>Gender: <span class="required">*</span></label>
         <select name="gender" required>
+            <option value="">Select gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
-        </select><br>
+        </select>
         
-        <label>Birthdate:</label>
-        <input type="date" name="birthdate" required><br>
+        <label>Birthdate: <span class="required">*</span></label>
+        <input type="date" name="birthdate" required>
         
-        <label>Address:</label>
-        <input type="text" name="address" required><br>
+        <label>Address: <span class="required">*</span></label>
+        <input type="text" name="address" required placeholder="Street and house number">
         
-        <label>Postcode:</label>
-        <input type="text" name="postcode" required><br>
+        <label>Postcode: <span class="required">*</span></label>
+        <input type="text" name="postcode" required placeholder="e.g., 00100">
         
         <label>City:</label>
-        <input type="text" name="city"><br>
+        <input type="text" name="city" placeholder="Optional">
         
         <label>Country:</label>
-        <input type="text" name="country"><br>
+        <input type="text" name="country" placeholder="Optional">
         
         <button type="submit">Create Account</button>
     </form>
     
-    <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+    <p style="text-align: center; margin-top: 20px;">
+        Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+    </p>
 </body>
 </html>

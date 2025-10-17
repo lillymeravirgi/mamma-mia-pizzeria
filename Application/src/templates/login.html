@@ -2,20 +2,93 @@
 <html>
 <head>
     <title>Login - Mamma Mia Pizzeria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #d35400;
+            text-align: center;
+        }
+        .error {
+            color: red;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        form {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #d35400;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #e67e22;
+        }
+        .links {
+            margin-top: 20px;
+            text-align: center;
+        }
+        a {
+            color: #d35400;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            margin: 15px 0;
+            text-align: center;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-    <h1>Login to Mamma Mia Pizzeria</h1>
+    <h1>🍕 Mamma Mia Pizzeria</h1>
+    <h2 style="text-align: center; color: #666;">Customer Login</h2>
     
     {% if error %}
-    <p style="color: red;">{{ error }}</p>
+    <p class="error">{{ error }}</p>
     {% endif %}
     
     <form method="POST">
         <label>Customer ID:</label>
-        <input type="number" name="customer_id" required>
+        <input type="number" name="customer_id" required placeholder="Enter your customer ID">
         <button type="submit">Login</button>
     </form>
     
-    <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign up here</a></p>
+    <div class="links">
+        <p><a href="{{ url_for('forgot_id') }}">🔍 Forgot your Customer ID?</a></p>
+        <div class="divider">───── or ─────</div>
+        <p><a href="{{ url_for('signup') }}">📝 Create a new account</a></p>
+    </div>
 </body>
 </html>

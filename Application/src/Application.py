@@ -1,5 +1,7 @@
 from decimal import Decimal
-from methodsORM import get_pizza_menu, get_drink_menu, get_dessert_menu, SessionLocal, get_customer_by_id, create_customer
+from methodsORM import (get_pizza_menu, get_drink_menu, get_dessert_menu, 
+                        SessionLocal, get_customer_by_id, create_customer, 
+                        add_order, find_deliverer, get_customer_by_name_birthdate)
 from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
 
@@ -31,12 +33,39 @@ def login():
     
     return render_template("login.html")
 
+@app.route("/forgot_id", methods=["GET", "POST"])
+def forgot_id():
+    if request.method == "POST":
+        last_name = request.form.get("last_name")
+        birthdate = request.form.get("birthdate")
+        
+        if last_name and birthdate:
+            db_session = SessionLocal()
+            customer = get_customer_by_name_birthdate(
+                db_session, 
+                last_name, 
+                datetime.strptime(birthdate, '%Y-%m-%d').date()
+            )
+            db_session.close()
+            
+            if customer:
+                return render_template("forgot_id.html", 
+                                     customer_id=customer.id,
+                                     customer_name=customer.name,
+                                     found=True)
+            else:
+                return render_template("forgot_id.html", 
+                                     error="No customer found with this information",
+                                     found=False)
+    
+    return render_template("forgot_id.html", found=False)
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         name = request.form.get("name")
         gender = request.form.get("gender")
-        birthdate = request.form.get("birthdate")  # format: YYYY-MM-DD
+        birthdate = request.form.get("birthdate")
         address = request.form.get("address")
         postcode = request.form.get("postcode")
         city = request.form.get("city")
@@ -60,9 +89,8 @@ def signup():
             )
             db_session.commit()
             
-            session['customer_id'] = customer_id
-            session['customer_name'] = name
-            return redirect(url_for("menu"))
+            # Redirect to a page showing their new customer ID
+            return redirect(url_for("signup_success", customer_id=customer_id))
         except Exception as e:
             db_session.rollback()
             return render_template("signup.html", error=f"Error creating account: {str(e)}")
@@ -70,6 +98,19 @@ def signup():
             db_session.close()
     
     return render_template("signup.html")
+
+@app.route("/signup_success/<int:customer_id>")
+def signup_success(customer_id):
+    db_session = SessionLocal()
+    customer = get_customer_by_id(db_session, customer_id)
+    db_session.close()
+    
+    if customer:
+        return render_template("signup_success.html", 
+                             customer_id=customer_id,
+                             customer_name=customer.name)
+    else:
+        return redirect(url_for("signup"))
 
 @app.route("/menu", methods=["GET", "POST"])
 def menu():
@@ -82,7 +123,6 @@ def menu():
     desserts = get_dessert_menu()
     
     if request.method == "POST":
-        
         order_items = []
         
         for item_type in ["pizza", "drink", "dessert"]:
@@ -95,7 +135,7 @@ def menu():
         session['order_items'] = order_items
         return redirect(url_for("confirmation"))
     
-    return render_template("Menu.html", 
+    return render_template("menu.html", 
                          pizzas=pizzas, 
                          desserts=desserts, 
                          drinks=drinks,
@@ -106,12 +146,38 @@ def confirmation():
     if 'customer_id' not in session:
         return redirect(url_for("login"))
     
-    # Missing: order processing
     order_items = session.get('order_items', [])
     customer_id = session['customer_id']
-    # add_order()
     
-    return "<h1>Your order has been received!</h1>"
+    if not order_items:
+        return redirect(url_for("menu"))
+    
+    db_session = SessionLocal()
+    try:
+        # Get customer postcode
+        customer = get_customer_by_id(db_session, customer_id)
+        
+        # Find available deliverer for this postcode
+        delivery_id = find_deliverer(db_session, customer.postcode)
+        
+        # Create the order
+        order_id = add_order(db_session, customer_id, order_items, delivery_id)
+        
+        db_session.commit()
+        
+        # Clear order items from session
+        session.pop('order_items', None)
+        
+        return render_template("confirmation.html",
+                             order_id=order_id,
+                             customer_id=customer_id,
+                             customer_name=session.get('customer_name'),
+                             delivery_assigned=delivery_id is not None)
+    except Exception as e:
+        db_session.rollback()
+        return f"<h1>Error processing order: {str(e)}</h1>"
+    finally:
+        db_session.close()
 
 @app.route("/logout")
 def logout():

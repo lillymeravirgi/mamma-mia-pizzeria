@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Forgot Customer ID - Mamma Mia Pizzeria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .success-box {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: red;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #d35400;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #e67e22;
+        }
+        .customer-id {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d35400;
+        }
+        a {
+            color: #d35400;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Forgot Your Customer ID?</h1>
+    
+    {% if found %}
+        <div class="success-box">
+            <h2>Customer ID Found!</h2>
+            <p><strong>Name:</strong> {{ customer_name }}</p>
+            <p><strong>Your Customer ID is:</strong> <span class="customer-id">{{ customer_id }}</span></p>
+            <p>Please save this ID for future logins.</p>
+            <p><a href="{{ url_for('login') }}">Go to Login Page</a></p>
+        </div>
+    {% else %}
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+        
+        <p>Enter your last name and birthdate to retrieve your customer ID:</p>
+        
+        <form method="POST">
+            <label>Last Name:</label>
+            <input type="text" name="last_name" required placeholder="Enter your last name">
+            
+            <label>Birthdate:</label>
+            <input type="date" name="birthdate" required>
+            
+            <button type="submit">Find My ID</button>
+        </form>
+        
+        <p style="margin-top: 20px;">
+            <a href="{{ url_for('login') }}">Back to Login</a>
+        </p>
+    {% endif %}
+</body>
+</html>
