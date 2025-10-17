@@ -4,7 +4,7 @@ def connectDB():
     return mysql.connector.connect(
     host="localhost",
     user="root",
-    password="HimPfSQL",
+    password="Ponzano05",
     database="pizza_ordering"
 )
 

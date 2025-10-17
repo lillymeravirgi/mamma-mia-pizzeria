@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, ForeignKey, func
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
-engine = create_engine("mysql+pymysql://root:HimPfSQL@localhost/pizza_ordering", echo=True)
+engine = create_engine("mysql+pymysql://root:Ponzano05@localhost/pizza_ordering", echo=True)
 Base = declarative_base()
 SessionLocal = sessionmaker(bind=engine)
 
