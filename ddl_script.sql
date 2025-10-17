@@ -1,11 +1,10 @@
 /*
 Usage: 
     Run this script in MySQL to create the database schema.
-Example:
     mysql -u root -p pizza_ordering < ddl_script.sql
 */
 
--- INGREDIENTS
+
 CREATE TABLE Ingredient (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
@@ -14,13 +13,13 @@ CREATE TABLE Ingredient (
     is_vegetarian BOOLEAN NOT NULL
 );
 
--- PIZZAS
+
 CREATE TABLE Pizza (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE
 );
 
--- MANY-TO-MANY: Pizza ↔ Ingredient
+
 CREATE TABLE PizzaIngredient (
     pizza_id INT NOT NULL,
     ingredient_id INT NOT NULL,
@@ -29,14 +28,14 @@ CREATE TABLE PizzaIngredient (
     FOREIGN KEY(ingredient_id) REFERENCES Ingredient(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- DESSERTS
+
 CREATE TABLE Dessert (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
     cost DECIMAL(5,2) NOT NULL CHECK (cost > 0)
 );
 
--- DRINKS
+
 CREATE TABLE Drink (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
@@ -44,7 +43,7 @@ CREATE TABLE Drink (
     is_alcoholic BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- CUSTOMERS
+
 CREATE TABLE Customer (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
