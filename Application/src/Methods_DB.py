@@ -1,5 +1,8 @@
 import mysql.connector
 
+from Application.src.ORMMapping import SessionLocal
+from Application.src.models import OrderItem
+
 def connectDB():
     return mysql.connector.connect(
     host="localhost",
@@ -8,16 +11,18 @@ def connectDB():
     database="pizza_ordering"
 )
 
-def getMenu(): 
+def getDrinkMenu(): 
     conn = connectDB()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM PizzaMenu")
+    cursor.execute("SELECT id, name, cost, is_alcoholic FROM Drink")
     rows = cursor.fetchall()
-    cursor.execute("SELECT * FROM Drink")
-    rows += cursor.fetchall()
-    cursor.execute("SELECT * FROM Dessert")
-    rows += cursor.fetchall()
-    conn.close()
+    return rows
+
+def getDessertMenu(): 
+    conn = connectDB()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, cost FROM Dessert")
+    rows = cursor.fetchall()
     return rows
 
 def printMenu():
@@ -25,7 +30,7 @@ def printMenu():
     cursor = conn.cursor()
 
     print("🍕 Pizzas:")
-    pizzas = getPizzaInfo()
+    pizzas = getPizzaMenu()
     for name, price, vegetarian, vegan in pizzas:
         tags = []
         if vegetarian:
@@ -50,12 +55,12 @@ def printMenu():
     cursor.close()
     conn.close()
 
-def getPizzaInfo():
+def getPizzaMenu():
     conn = connectDB()
     cursor = conn.cursor()
 
     query = """
-    SELECT p.name,
+    SELECT p.id, p.name,
         ROUND(SUM(i.cost) * 1.4 * 1.09+5,2) AS pizza_price,
         MIN(i.is_vegetarian) AS is_vegetarian,
         MIN(i.is_vegan) AS is_vegan
@@ -70,3 +75,6 @@ def getPizzaInfo():
     cursor.close()
     conn.close()
     return rows
+
+
+
