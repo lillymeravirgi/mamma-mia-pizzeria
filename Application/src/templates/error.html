@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error - Mamma Mia Pizzeria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #d35400;
+        }
+        .error-box {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #d35400;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #e67e22;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-icon">❌</div>
+    <h1>Oops! </h1>
+    <h1>We could not find a driver near you</h1>
+    
+    <!-- <div class="error-box">
+        <p><strong>{{ error }}</strong></p>
+    </div> -->
+    
+    <p>We apologize for the inconvenience. 
+    
+        But walking is super healthy. Get your steps in for the day!
+    </p>
+    <p>Come by our beautiful Pizza Mamma Mia shop and pick up your pizza. 
+        It will taste even better when you have walked for it 🥰
+        See you soon!!
+        <p>
+
+        </p>
+        We cannot wait to finally meet you 🤩
+    </p>
+    
+    <button onclick="window.location.href='{{ url_for('menu') }}'">
+        Back to Menu
+    </button>
+    
+    {% if customer_name %}
+    <p style="margin-top: 20px;">
+        <a href="{{ url_for('logout') }}" style="color: #d35400;">Logout</a>
+    </p>
+    {% endif %}
+</body>
+</html>

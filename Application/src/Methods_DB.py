@@ -1,6 +1,6 @@
 import mysql.connector
 
-from Application.src.ORMMapping import SessionLocal
+from Application.src.DRAFTS.ORMMapping import SessionLocal
 from Application.src.models import OrderItem
 
 def connectDB():

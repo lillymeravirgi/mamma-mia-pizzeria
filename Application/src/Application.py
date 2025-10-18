@@ -1,10 +1,17 @@
 from decimal import Decimal
 from methodsORM import (get_pizza_menu, get_drink_menu, get_dessert_menu, 
                         SessionLocal, get_customer_by_id, create_customer, 
-                        add_order, find_deliverer, get_customer_by_name_birthdate)
+                        add_order, find_deliverer, get_customer_by_name_birthdate, make_deliverer_available)
 from flask import Flask, render_template, request, redirect, url_for, session
-from datetime import datetime
+from datetime import datetime, timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
+
+
+scheduler = BackgroundScheduler()
+scheduler.start()
+atexit.register(lambda: scheduler.shutdown(wait=False))
 
 app = Flask(__name__)
 app.secret_key = 'pepper'  
@@ -33,32 +40,32 @@ def login():
     
     return render_template("login.html")
 
-@app.route("/forgot_id", methods=["GET", "POST"])
+@app.route("/forgotID", methods=["GET", "POST"])
 def forgot_id():
     if request.method == "POST":
-        last_name = request.form.get("last_name")
+        name = request.form.get("name")
         birthdate = request.form.get("birthdate")
         
-        if last_name and birthdate:
+        if name and birthdate:
             db_session = SessionLocal()
             customer = get_customer_by_name_birthdate(
                 db_session, 
-                last_name, 
+                name, 
                 datetime.strptime(birthdate, '%Y-%m-%d').date()
             )
             db_session.close()
             
             if customer:
-                return render_template("forgot_id.html", 
+                return render_template("forgotID.html", 
                                      customer_id=customer.id,
                                      customer_name=customer.name,
                                      found=True)
             else:
-                return render_template("forgot_id.html", 
+                return render_template("forgotID.html", 
                                      error="No customer found with this information",
                                      found=False)
     
-    return render_template("forgot_id.html", found=False)
+    return render_template("forgotID.html", found=False)
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -153,6 +160,9 @@ def confirmation():
         return redirect(url_for("menu"))
     
     db_session = SessionLocal()
+    order_id = None  # Initialize order_id
+    delivery_id = None  # Initialize delivery_id
+    
     try:
         # Get customer postcode
         customer = get_customer_by_id(db_session, customer_id)
@@ -165,6 +175,15 @@ def confirmation():
         
         db_session.commit()
         
+        # Schedule deliverer to become available again after 30 minutes
+        if delivery_id:
+            scheduler.add_job(
+                make_deliverer_available,
+                'date',
+                run_date=datetime.now() + timedelta(minutes=30),
+                args=[delivery_id]
+            )
+        
         # Clear order items from session
         session.pop('order_items', None)
         
@@ -173,9 +192,13 @@ def confirmation():
                              customer_id=customer_id,
                              customer_name=session.get('customer_name'),
                              delivery_assigned=delivery_id is not None)
+    
     except Exception as e:
         db_session.rollback()
-        return f"<h1>Error processing order: {str(e)}</h1>"
+        # Return a proper error page instead of just showing the error
+        return render_template("error.html", 
+                             error=f"Error processing order: {str(e)}",
+                             customer_name=session.get('customer_name'))
     finally:
         db_session.close()
 
