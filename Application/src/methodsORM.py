@@ -419,6 +419,12 @@ def create_customer(session: Session, name: str, gender: str, birthdate,
     session.flush()
     return new_customer.id
 
+def get_all_orders( session: Session):
+     session.query(Order).filter(
+        Order.customer_id == session['customer_id']
+    ).count()
+    
+
 def get_discount_info(session: Session, code: str) -> dict:
     """
     Get information about a discount code without applying it.

@@ -5,33 +5,125 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         h1 { color: #d35400; }
-        table { border-collapse: collapse; width: 60%; margin-bottom: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        table { 
+            border-collapse: collapse; 
+            width: 60%; 
+            margin-bottom: 20px; 
+        }
+        th, td { 
+            border: 1px solid #b36565d4; 
+            padding: 8px; 
+            text-align: left; 
+        }
         th { background-color: #f2f2f2; }
         .tags { font-size: 0.9em; color: rgb(113, 177, 113); }
-
-        table {
-            border-collapse: collapse;
-            width: 50%;
-            font-size: 0.9em;
-            margin-bottom: 20px;
+        
+        .discount-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            max-width: 500px;
         }
-        th, td {
-            border: 1px solid #b36565d4;
-            padding: 6px;
-            text-align: left;
+        
+        .discount-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .discount-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .discount-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .discount-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .discount-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .birthday-box, .loyalty-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            max-width: 600px;
+        }
+        
+        .birthday-box { background: #d4edda; color: #155724; }
+        
+        button {
+            background-color: #d35400;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #e67e22;
+        }
+        
+        .validate-btn {
+            background-color: #28a745;
+            padding: 8px 16px;
+        }
+        
+        .validate-btn:hover {
+            background-color: #218838;
         }
     </style>
 </head>
 <body>
     <h1>🍕 Pizzeria Menu 🍕</h1>
-    <form method="POST">
+    
+    {% if birthday_info.is_birthday %}
+    <div class="birthday-box">
+        <h3>🎉 Happy Birthday, {{ customer_name }}! 🎉</h3>
+        <p>Today you get FREE:</p>
+        <ul>
+            <li>🍕 1 {{ birthday_info.free_pizza.name if birthday_info.free_pizza else "Pizza" }}</li>
+            <li>🥤 1 {{ birthday_info.free_drink.name if birthday_info.free_drink else "Drink" }}</li>
+        </ul>
+        <p><em>Your free items will be automatically added to your order!</em></p>
+    </div>
+    {% endif %}
 
-
-
+    {% if loyalty_eligible %}
+    <div class="loyalty-box">
+        <h3>🎁 Loyalty Reward Available!</h3>
+        <p>You've ordered {{ customer.pizzas_ordered_count }} pizzas!</p>
+        <p><strong>You'll get 10% off this order!</strong></p>
+    </div>
+    {% endif %}
+    
+    <form method="POST" id="orderForm">
         <h2>Pizzas</h2>
         <table>
-            <tr><th>Name</th><th>Price (€)</th><th>Vegetarisch🌱/Vegan🥦</th><th>Quantity</th></tr>
+            <tr><th>Name</th><th>Price (€)</th><th>🌱/🥦</th><th>Quantity</th></tr>
             {% for pizza in pizzas %}
             <tr>
                 <td>{{ pizza.name }}</td>
@@ -72,19 +164,71 @@
             {% endfor %}
         </table>
 
-        {% if birthday_info.is_birthday %}
-        <p>🎉 Happy Birthday! You get a free pizza and drink: 
-            {{ birthday_info.free_pizza.name if birthday_info.free_pizza else "" }},
-            {{ birthday_info.free_drink.name if birthday_info.free_drink else "" }}
-        </p>
-        {% endif %}
+        <div class="discount-section">
+            <h3>💰 Have a Discount Code?</h3>
+            <div class="discount-input">
+                <input type="text" 
+                       name="discount_code" 
+                       id="discountCode" 
+                       placeholder="Enter code (e.g., WELCOME10)"
+                       style="text-transform: uppercase;">
+                <button type="button" class="validate-btn" onclick="validateDiscount()">
+                    Validate
+                </button>
+            </div>
+            <div id="discountMessage" class="discount-message"></div>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                Available codes: WELCOME10, LOYALTY2025
+            </p>
+        </div>
 
-        {% if loyalty_eligible %}
-        <p>🎁 You are eligible for the 10-pizza loyalty discount!</p>
-        {% endif %}
-
-        Discount code: <input type="text" name="discount_code"><br>
-        <button type="submit">Place Order</button>
+        <button type="submit">Place Order 🛒</button>
     </form>
+
+    <script>
+        function validateDiscount() {
+            const code = document.getElementById('discountCode').value.trim();
+            const messageDiv = document.getElementById('discountMessage');
+            
+            if (!code) {
+                messageDiv.className = 'discount-message error';
+                messageDiv.textContent = 'Please enter a discount code';
+                return;
+            }
+            
+            // Show loading state
+            messageDiv.className = 'discount-message';
+            messageDiv.style.display = 'block';
+            messageDiv.textContent = 'Validating...';
+            
+            // Validate via AJAX
+            fetch('/validate_discount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    messageDiv.className = 'discount-message success';
+                    messageDiv.textContent = '✓ ' + data.message;
+                } else {
+                    messageDiv.className = 'discount-message error';
+                    messageDiv.textContent = '✗ ' + data.message;
+                }
+            })
+            .catch(error => {
+                messageDiv.className = 'discount-message error';
+                messageDiv.textContent = 'Error validating code';
+            });
+        }
+        
+        // Auto-uppercase discount code
+        document.getElementById('discountCode').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    </script>
 </body>
 </html>

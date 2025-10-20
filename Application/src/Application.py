@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
 from sqlalchemy import func
-from methodsORM import (get_discount_info, get_pizza_menu, get_drink_menu, get_dessert_menu, 
+from methodsORM import (get_all_orders, get_discount_info, get_pizza_menu, get_drink_menu, get_dessert_menu, 
                         SessionLocal, get_customer_by_id, create_customer, 
                         add_order, find_deliverer, get_customer_by_name_birthdate, 
                         make_deliverer_available, apply_discount_code, check_birthday_discount,
@@ -388,10 +388,8 @@ def customer_profile():
     birthday_info = check_birthday_discount(db_session, session['customer_id'])
     
   
-    total_orders = db_session.query(Order).filter(
-        Order.customer_id == session['customer_id']
-    ).count()
-    
+    total_orders = get_all_orders(session['customer_id'])
+
     db_session.close()
     
     return render_template("customer_profile.html",
