@@ -5,12 +5,8 @@ from decimal import Decimal
 from datetime import datetime
 
 
-engine = create_engine("mysql+pymysql://root:HimPfSQL@localhost/pizza_ordering", echo=True)
+engine = create_engine("mysql+pymysql://root:Ponzano.05@localhost/pizza_ordering", echo=True)
 SessionLocal = sessionmaker(bind=engine)
-
-
-
-
 
 def get_pizza_menu():
     session = SessionLocal()
@@ -70,9 +66,6 @@ def get_customer_by_name_birthdate(session: Session, name: str, date: Date):
     finally:
         session.close()
     
-
-
-
 
 def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: int | None):
     """
@@ -160,7 +153,6 @@ def get_product_id_by_name(product_type: str, product_name: str, session: Sessio
         return product.id
     else:
         raise ValueError(f"{product_type} '{product_name}' not found in database")
-
 
 
 def make_deliverer_available(delivery_id: int):
