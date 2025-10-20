@@ -51,20 +51,32 @@ INSERT INTO Customer (name, gender, birthdate, address, postcode, city, country)
 ('Mario Rossi', 'male', '1990-05-21', 'Via Roma 1', '00100', 'Rome', 'Italy'),
 ('Anna Bianchi', 'female', '1985-12-02', 'Corso Milano 10', '20100', 'Milan', 'Italy'),
 ('John Smith', 'male', '1992-03-14', 'Baker Street 221B', 'NW16XE', 'London', 'UK'),
+('Paul Peter Turnschuh', 'male', '1998-10-19', 'Kloßstraße 12', '10101', 'Bremen', 'Germany'),
+('Kevin McCallister', 'male', '1990-08-26', '671 Lincoln Avenue', '10001', 'Winnetka', 'USA'),
 ('Emma Johnson', 'female', '1998-07-09', '5th Avenue 101', '10001', 'New York', 'USA'),
-('Lucas Müller', 'male', '1988-11-23', 'Hauptstrasse 15', '10115', 'Berlin', 'Germany');
+('Sven Marquardt', 'male', '1962-02-03', 'Hauptstrasse 15', '10115', 'Berlin', 'Germany');
+
+
+
 
 INSERT INTO Staff (name, gender, role, salary, birthdate) VALUES
 ('Giovanni Verdi', 'male', 'chef', 2500.00, '1980-06-15'),
 ('Luca Neri', 'male', 'driver', 1800.00, '1990-02-20'),
 ('Giulia Rosa', 'female', 'driver', 1850.00, '1992-08-05'),
-('Sofia Blu', 'female', 'manager', 3000.00, '1975-03-25'),
+('Sofia Blu', 'female', 'driver', 3000.00, '1975-03-25'),
+('Einstein', 'male', 'manager', 4000.00, '1879-03-14'),
+('Harry Potter', 'male', 'driver', 1900.00, '1999-02-02'),
+('Harold Töpfer', 'male', 'driver', 1900.00, '1999-02-02'),
 ('Marco Gialli', 'male', 'cashier', 1700.00, '1988-11-10');
 
 -- Delivery persons (linked to Staff IDs 2 and 3)
 INSERT INTO DeliveryPerson (id, postcode, available) VALUES
-(7, '00100', TRUE),  -- Luca Neri
-(8, '20100', TRUE);  -- Giulia Rosa
+(7, '00100', TRUE), 
+(6, 'NW16XE', TRUE),
+(5, '10101', TRUE), 
+(8, '20100', TRUE); 
+(4, '10115', TRUE); 
+
 
 
 INSERT INTO DiscountCode (code, is_valid, expiry_date) VALUES

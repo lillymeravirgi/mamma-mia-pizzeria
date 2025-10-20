@@ -39,19 +39,17 @@ def get_dessert_menu():
     return desserts
 
 def find_deliverer(session: Session, customer_postcode: str):
-    try:
-        deliverer = (
-            session.query(DeliveryPerson)
-            .filter(
-                DeliveryPerson.postcode == customer_postcode,
-                DeliveryPerson.available == True 
-            )
-            .first() 
+    """Find an available deliverer for the given postcode"""
+    deliverer = (
+        session.query(DeliveryPerson)
+        .filter(
+            DeliveryPerson.postcode == customer_postcode,
+            DeliveryPerson.available == True 
         )
-   
-        return deliverer.id if deliverer else None
-    finally:
-        session.close()
+        .first() 
+    )
+    
+    return deliverer.id if deliverer else None
 
 
 def get_customer_by_name_birthdate(session: Session, name: str, date: Date):
@@ -66,6 +64,9 @@ def get_customer_by_name_birthdate(session: Session, name: str, date: Date):
     finally:
         session.close()
     
+
+
+
 
 def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: int | None):
     """

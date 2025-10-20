@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Confirmation - Mamma Mia Pizzeria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #d35400;
+        }
+        .success-box {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .order-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .order-details p {
+            margin: 10px 0;
+        }
+        .order-id {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d35400;
+        }
+        button {
+            background-color: #d35400;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #e67e22;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="icon">🎉</div>
+    <h1>Order Confirmed!</h1>
+    
+    <div class="success-box">
+        <h2>Thank you, {{ customer_name }}! 🍕</h2>
+        <p>Your order has been successfully placed.</p>
+    </div>
+    
+    <div class="order-details">
+        <p><strong>Order Number:</strong> <span class="order-id">#{{ order_id }}</span></p>
+        <p><strong>Customer ID:</strong> {{ customer_id }}</p>
+        
+        {% if delivery_assigned %}
+        <p><strong>Delivery Status:</strong> ✅ Driver assigned - Your pizza will be delivered soon!</p>
+        {% else %}
+        <p><strong>Pickup Status:</strong> 🏪 Ready for pickup at our restaurant</p>
+        <p style="color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+            No delivery driver available in your area. Please pick up your order at our location.
+        </p>
+        {% endif %}
+    </div>
+    
+    <p>We're preparing your delicious pizza! 👨‍🍳</p>
+    
+    <button onclick="window.location.href='{{ url_for('menu') }}'">
+        Order Again
+    </button>
+    
+    <button onclick="window.location.href='{{ url_for('logout') }}'">
+        Logout
+    </button>
+</body>
+</html>

@@ -32,19 +32,39 @@ CREATE TABLE `customer` (
   `city` varchar(50) DEFAULT NULL,
   `country` varchar(50) DEFAULT NULL,
   `pizzas_ordered_count` int NOT NULL DEFAULT '0',
+  CONSTRAINT uq_customer_name UNIQUE (name, address),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+DELIMITER $$
+
+CREATE TRIGGER before_customer_insert
+BEFORE INSERT ON customer
+FOR EACH ROW
+BEGIN
+  IF NEW.birthdate > CURDATE() THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Birthdate cannot be in the future';
+  END IF;
+END$$
+
+CREATE TRIGGER before_customer_update
+BEFORE UPDATE ON customer
+FOR EACH ROW
+BEGIN
+  IF NEW.birthdate > CURDATE() THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Birthdate cannot be in the future';
+  END IF;
+END$$
+
+DELIMITER ;
 --
 -- Dumping data for table `customer`
 --
 
-LOCK TABLES `customer` WRITE;
-/*!40000 ALTER TABLE `customer` DISABLE KEYS */;
-INSERT INTO `customer` VALUES (1,'Mario Rossi','male','1990-05-21','Via Roma 1','00100','Rome','Italy',0),(2,'Anna Bianchi','female','1985-12-02','Corso Milano 10','20100','Milan','Italy',0),(3,'John Smith','male','1992-03-14','Baker Street 221B','NW16XE','London','UK',0),(4,'Emma Johnson','female','1998-07-09','5th Avenue 101','10001','New York','USA',0),(5,'Lucas Müller','male','1988-11-23','Hauptstrasse 15','10115','Berlin','Germany',0),(6,'Mario Rossi','male','1990-05-21','Via Roma 1','00100','Rome','Italy',0),(7,'Anna Bianchi','female','1985-12-02','Corso Milano 10','20100','Milan','Italy',0),(8,'John Smith','male','1992-03-14','Baker Street 221B','NW16XE','London','UK',0),(9,'Emma Johnson','female','1998-07-09','5th Avenue 101','10001','New York','USA',0),(10,'Lucas Müller','male','1988-11-23','Hauptstrasse 15','10115','Berlin','Germany',0),(11,'Mario Rossi','male','1990-05-21','Via Roma 1','00100','Rome','Italy',0),(12,'Anna Bianchi','female','1985-12-02','Corso Milano 10','20100','Milan','Italy',0),(13,'John Smith','male','1992-03-14','Baker Street 221B','NW16XE','London','UK',0),(14,'Emma Johnson','female','1998-07-09','5th Avenue 101','10001','New York','USA',0),(15,'Lucas Müller','male','1988-11-23','Hauptstrasse 15','10115','Berlin','Germany',0);
-/*!40000 ALTER TABLE `customer` ENABLE KEYS */;
-UNLOCK TABLES;
+
 
 --
 -- Table structure for table `deliveryperson`
