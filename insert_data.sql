@@ -2,6 +2,8 @@
 Usage:
     Run this script AFTER creating the schema with ddl_script.sql:
         mysql -u root -p pizza_ordering < insert_data.sql
+    
+    UPDATED: Hawaiian pizza removed, data adjusted accordingly
 */
 
 INSERT INTO Ingredient (name, cost, is_vegan, is_vegetarian) VALUES
@@ -20,10 +22,8 @@ INSERT INTO Pizza (name) VALUES
 ('Margherita'),
 ('Pepperoni'),
 ('Funghi'),
-('Hawaiian'),
 ('Vegan Special');
 
--- Link pizzas ↔ ingredients
 INSERT INTO PizzaIngredient (pizza_id, ingredient_id) VALUES
 -- Margherita: Tomato, Mozzarella, Basil
 (1,1),(1,2),(1,4),
@@ -31,10 +31,8 @@ INSERT INTO PizzaIngredient (pizza_id, ingredient_id) VALUES
 (2,1),(2,2),(2,3),
 -- Funghi: Tomato, Mozzarella, Mushrooms, Onions
 (3,1),(3,2),(3,5),(3,6),
--- Hawaiian: Tomato, Mozzarella, Ham, Pineapple
-(4,1),(4,2),(4,7),(4,8),
 -- Vegan Special: Tomato, Vegan Cheese, Olives, Basil
-(5,1),(5,10),(5,9),(5,4);
+(4,1),(4,10),(4,9),(4,4);
 
 INSERT INTO Dessert (name, cost) VALUES
 ('Tiramisu', 3.50),
@@ -48,6 +46,7 @@ INSERT INTO Drink (name, cost, is_alcoholic) VALUES
 ('Red Wine', 4.50, TRUE);
 
 INSERT INTO Customer (name, gender, birthdate, address, postcode, city, country) VALUES
+('Lorenzo Ranchetti', 'male', '2005-02-14', 'Treviso Fiera', '31100', 'Treviso', 'Italy')
 ('Mario Rossi', 'male', '1990-05-21', 'Via Roma 1', '00100', 'Rome', 'Italy'),
 ('Anna Bianchi', 'female', '1985-12-02', 'Corso Milano 10', '20100', 'Milan', 'Italy'),
 ('John Smith', 'male', '1992-03-14', 'Baker Street 221B', 'NW16XE', 'London', 'UK'),
@@ -55,9 +54,6 @@ INSERT INTO Customer (name, gender, birthdate, address, postcode, city, country)
 ('Kevin McCallister', 'male', '1990-08-26', '671 Lincoln Avenue', '10001', 'Winnetka', 'USA'),
 ('Emma Johnson', 'female', '1998-07-09', '5th Avenue 101', '10001', 'New York', 'USA'),
 ('Sven Marquardt', 'male', '1962-02-03', 'Hauptstrasse 15', '10115', 'Berlin', 'Germany');
-
-
-
 
 INSERT INTO Staff (name, gender, role, salary, birthdate) VALUES
 ('Giovanni Verdi', 'male', 'chef', 2500.00, '1980-06-15'),
@@ -69,15 +65,12 @@ INSERT INTO Staff (name, gender, role, salary, birthdate) VALUES
 ('Harold Töpfer', 'male', 'driver', 1900.00, '1999-02-02'),
 ('Marco Gialli', 'male', 'cashier', 1700.00, '1988-11-10');
 
--- Delivery persons (linked to Staff IDs 2 and 3)
 INSERT INTO DeliveryPerson (id, postcode, available) VALUES
 (7, '00100', TRUE), 
 (6, 'NW16XE', TRUE),
 (5, '10101', TRUE), 
-(8, '20100', TRUE); 
-(4, '10115', TRUE); 
-
-
+(8, '20100', TRUE),
+(4, '10115', TRUE);
 
 INSERT INTO DiscountCode (code, is_valid, expiry_date) VALUES
 ('WELCOME10', TRUE, '2025-12-31'),
@@ -118,29 +111,29 @@ INSERT INTO OrderItem (order_id, product_type, product_id, quantity) VALUES
 (1, 'pizza', 1, 1), (1, 'drink', 1, 1), (1, 'dessert', 1, 1),
 (2, 'pizza', 2, 2), (2, 'drink', 3, 1),
 (3, 'pizza', 3, 1),
-(4, 'pizza', 5, 1), (4, 'dessert', 2, 1),
+(4, 'pizza', 4, 1), (4, 'dessert', 2, 1),
 (5, 'pizza', 1, 1),
 
 -- Anna Bianchi orders
 (6, 'pizza', 2, 1), (6, 'drink', 2, 2),
 (7, 'pizza', 3, 2),
-(8, 'pizza', 4, 1), (8, 'dessert', 3, 1), (8, 'drink', 4, 1),
-(9, 'pizza', 5, 1), (9, 'drink', 1, 1),
+(8, 'pizza', 3, 1), (8, 'dessert', 3, 1), (8, 'drink', 4, 1),
+(9, 'pizza', 4, 1), (9, 'drink', 1, 1),
 (10, 'pizza', 1, 1),
 
 -- John Smith orders
-(11, 'pizza', 5, 1), (11, 'dessert', 3, 1),
+(11, 'pizza', 4, 1), (11, 'dessert', 3, 1),
 (12, 'pizza', 1, 2), (12, 'drink', 2, 1),
 (13, 'pizza', 2, 1), (13, 'dessert', 1, 1),
 (14, 'pizza', 3, 1), (14, 'drink', 1, 1),
-(15, 'pizza', 4, 1),
+(15, 'pizza', 2, 1),
 
 -- Emma Johnson orders
 (16, 'pizza', 1, 1), (16, 'dessert', 2, 1),
 (17, 'pizza', 2, 1), (17, 'drink', 3, 1),
-(18, 'pizza', 5, 1), (18, 'dessert', 3, 1),
+(18, 'pizza', 4, 1), (18, 'dessert', 3, 1),
 (19, 'pizza', 3, 2),
-(20, 'pizza', 4, 1), (20, 'drink', 1, 1);
+(20, 'pizza', 2, 1), (20, 'drink', 1, 1);
 
 INSERT INTO OrderDiscount (order_id, discount_id) VALUES
 (1, 1), (2, 3), (6, 2), (11, 1), (18, 2);

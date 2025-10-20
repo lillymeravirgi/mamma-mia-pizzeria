@@ -72,6 +72,18 @@
             {% endfor %}
         </table>
 
+        {% if birthday_info.is_birthday %}
+        <p>🎉 Happy Birthday! You get a free pizza and drink: 
+            {{ birthday_info.free_pizza.name if birthday_info.free_pizza else "" }},
+            {{ birthday_info.free_drink.name if birthday_info.free_drink else "" }}
+        </p>
+        {% endif %}
+
+        {% if loyalty_eligible %}
+        <p>🎁 You are eligible for the 10-pizza loyalty discount!</p>
+        {% endif %}
+
+        Discount code: <input type="text" name="discount_code"><br>
         <button type="submit">Place Order</button>
     </form>
 </body>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ customer.name }}'s Profile - Mamma Mia Pizzeria</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d35400;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        button {
+            background-color: #d35400;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #e67e22;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ customer.name }}'s Profile</h1>
+        <p><strong>Gender:</strong> {{ customer.gender | capitalize }}</p>
+        <p><strong>Birthdate:</strong> {{ customer.birthdate }}</p>
+        <p><strong>Address:</strong> {{ customer.address }}, {{ customer.city or "N/A" }}, {{ customer.country or "N/A" }}</p>
+        <p><strong>Total Orders Placed:</strong> {{ total_orders }}</p>
+
+        {% if birthday_info.is_birthday %}
+        <div class="highlight">🎉 Today is your birthday! You are eligible for a free pizza & drink! 🍕🥤</div>
+        {% endif %}
+
+        <div class="buttons">
+            <button onclick="window.location.href='{{ url_for('menu') }}'">View Menu</button>
+            <button onclick="window.location.href='{{ url_for('my_orders') }}'">My Orders</button>
+            <button onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        </div>
+    </div>
+</body>
+</html>
+

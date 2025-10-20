@@ -1,17 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Order Confirmation - Mamma Mia Pizzeria</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
+            font-family: 'Arial', sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
             margin: 50px auto;
-            padding: 20px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             text-align: center;
+        }
+        .icon {
+            font-size: 60px;
         }
         h1 {
             color: #d35400;
+            margin-bottom: 10px;
         }
         .success-box {
             background-color: #d4edda;
@@ -29,67 +42,103 @@
             text-align: left;
         }
         .order-details p {
-            margin: 10px 0;
+            margin: 8px 0;
+            font-size: 16px;
         }
         .order-id {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #d35400;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .delivery {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .pickup {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .discounts {
+            margin-top: 15px;
+            text-align: left;
+        }
+        .discounts p {
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
         button {
             background-color: #d35400;
             color: white;
-            padding: 12px 24px;
+            padding: 12px 25px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            margin: 10px;
+            transition: background 0.3s;
         }
         button:hover {
             background-color: #e67e22;
         }
-        .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
         a {
             text-decoration: none;
-            color: white;
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
-    <div class="icon">🎉</div>
-    <h1>Order Confirmed!</h1>
-    
-    <div class="success-box">
-        <h2>Thank you, {{ customer_name }}! 🍕</h2>
-        <p>Your order has been successfully placed.</p>
+    <div class="container">
+        <div class="icon">🎉</div>
+        <h1>Order Confirmed!</h1>
+        <div class="success-box">
+            Thank you, <strong>{{ customer_name }}</strong>! Your order has been placed successfully. 🍕
+        </div>
+
+        <div class="order-details">
+            <p><strong>Order Number:</strong> <span class="order-id">#{{ order_id }}</span></p>
+            <p><strong>Customer ID:</strong> {{ customer_id }}</p>
+            <p><strong>Total:</strong> €{{ order_total }}</p>
+
+            {% if delivery_assigned %}
+            <div class="status delivery">
+                ✅ Driver assigned - Your pizza will be delivered soon!
+            </div>
+            {% else %}
+            <div class="status pickup">
+                🏪 No driver available. Pick up your order at our location.
+            </div>
+            {% endif %}
+
+            <div class="discounts">
+                {% if discount_applied %}
+                <p>🎟 Discount code applied!</p>
+                {% endif %}
+                {% if birthday_applied %}
+                <p>🎉 Birthday free items applied!</p>
+                {% endif %}
+                {% if loyalty_applied %}
+                <p>🎁 Loyalty discount applied!</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button onclick="window.location.href='{{ url_for('menu') }}'">Order Again</button>
+            <button onclick="window.location.href='{{ url_for('my_orders') }}'">View My Orders</button>
+            <button onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        </div>
     </div>
-    
-    <div class="order-details">
-        <p><strong>Order Number:</strong> <span class="order-id">#{{ order_id }}</span></p>
-        <p><strong>Customer ID:</strong> {{ customer_id }}</p>
-        
-        {% if delivery_assigned %}
-        <p><strong>Delivery Status:</strong> ✅ Driver assigned - Your pizza will be delivered soon!</p>
-        {% else %}
-        <p><strong>Pickup Status:</strong> 🏪 Ready for pickup at our restaurant</p>
-        <p style="color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px;">
-            No delivery driver available in your area. Please pick up your order at our location.
-        </p>
-        {% endif %}
-    </div>
-    
-    <p>We're preparing your delicious pizza! 👨‍🍳</p>
-    
-    <button onclick="window.location.href='{{ url_for('menu') }}'">
-        Order Again
-    </button>
-    
-    <button onclick="window.location.href='{{ url_for('logout') }}'">
-        Logout
-    </button>
 </body>
 </html>

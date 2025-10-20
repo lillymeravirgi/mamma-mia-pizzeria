@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Staff Dashboard - Mamma Mia Pizzeria</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #d35400;
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #d35400;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #d35400;
+            color: #ffffff;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-in-preparation { background-color: #cce5ff; color: #004085; }
+        .status-prepared { background-color: #d1ecf1; color: #0c5460; }
+        .status-in-delivery { background-color: #ffeeba; color: #856404; }
+        .status-delivered { background-color: #d4edda; color: #155724; }
+        .status-cancelled { background-color: #f8d7da; color: #721c24; }
+
+        .logout-btn {
+            display: block;
+            width: 150px;
+            margin: 30px auto;
+            text-align: center;
+            background-color: #d35400;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Staff Dashboard</h1>
+
+        <!-- Top-Selling Pizzas -->
+        <h2>Top-Selling Pizzas (Last 30 Days)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pizza</th>
+                    <th>Total Sold</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for pizza, total_sold in top_pizzas %}
+                <tr>
+                    <td>{{ pizza }}</td>
+                    <td>{{ total_sold }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Undelivered Orders -->
+        <h2>Undelivered Orders</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer ID</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for order in undelivered %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.customer_id }}</td>
+                    <td>
+                        <span class="status status-{{ order.status | replace(' ', '-') }}">
+                            {{ order.status | capitalize }}
+                        </span>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Earnings by Gender -->
+        <h2>Earnings by Gender</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gender</th>
+                    <th>Total Earnings (€)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for gender, total in earnings %}
+                <tr>
+                    <td>{{ gender }}</td>
+                    <td>{{ total }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <a class="logout-btn" href="{{ url_for('staff_logout') }}">Logout</a>
+    </div>
+</body>
+</html>

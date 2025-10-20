@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Orders - Mamma Mia Pizzeria</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #d35400;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .order-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .order-info {
+            flex: 1;
+            min-width: 250px;
+        }
+        .order-info p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-in-preparation { background-color: #cce5ff; color: #004085; }
+        .status-prepared { background-color: #d1ecf1; color: #0c5460; }
+        .status-in-delivery { background-color: #ffeeba; color: #856404; }
+        .status-delivered { background-color: #d4edda; color: #155724; }
+        .status-cancelled { background-color: #f8d7da; color: #721c24; }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: #d35400;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #e67e22;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #ffffff;
+            background-color: #d35400;
+            padding: 12px 20px;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        a:hover {
+            background-color: #e67e22;
+        }
+        .nav-links {
+            text-align: center;
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My Orders</h1>
+
+        {% for item in orders %}
+        <div class="order-card">
+            <div class="order-info">
+                <p><strong>Order #:</strong> {{ item.order.id }}</p>
+                <p><strong>Total:</strong> €{{ item.order.total }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="status status-{{ item.order.status | replace(' ', '-') }}">
+                        {{ item.order.status | capitalize }}
+                    </span>
+                </p>
+            </div>
+            {% if item.can_cancel %}
+            <div class="buttons">
+                <form method="post" action="{{ url_for('cancel_order', order_id=item.order.id) }}">
+                    <button type="submit">Cancel Order</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="nav-links">
+            <a href="{{ url_for('menu') }}">Back to Menu</a>
+            <a href="{{ url_for('customer_profile') }}">My Profile</a>
+        </div>
+    </div>
+</body>
+</html>

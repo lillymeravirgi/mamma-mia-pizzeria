@@ -2,10 +2,9 @@ from sqlalchemy import func, create_engine, Date
 from sqlalchemy.orm import Session, sessionmaker
 from models import DeliveryPerson, Dessert, Drink, Ingredient, Order, Pizza, OrderItem, PizzaIngredient, Customer
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timedelta 
 
-
-engine = create_engine("mysql+pymysql://root:Ponzano.05@localhost/pizza_ordering", echo=True)
+engine = create_engine("mysql+pymysql://root:Ponzano05@localhost/pizza_ordering", echo=True)
 SessionLocal = sessionmaker(bind=engine)
 
 def get_pizza_menu():
@@ -51,7 +50,6 @@ def find_deliverer(session: Session, customer_postcode: str):
     
     return deliverer.id if deliverer else None
 
-
 def get_customer_by_name_birthdate(session: Session, name: str, date: Date):
     try:
        
@@ -63,33 +61,30 @@ def get_customer_by_name_birthdate(session: Session, name: str, date: Date):
         return customer
     finally:
         session.close()
-    
 
-
-
-
-def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: int | None):
+def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: int | None, apply_birthday: bool = False):
     """
-    Create a new order and its order items in the database.
-    
+    Create a new order with items, apply loyalty & birthday discounts, and return details.
     Args:
         session: SQLAlchemy session
         customer_id: ID of the customer placing the order
         order_items: list of tuples like (product_type, product_name, quantity)
         delivery_id: ID of assigned DeliveryPerson or None
-    
+
     Returns:
-        int: ID of the newly created order
+        dict: { 'order_id': int, 'birthday_applied': bool, 'loyalty_applied': bool }
     """
     try:
         # 1️⃣ Calculate total
         total_price = Decimal("0.00")
+        pizza_count = 0
         for product_type, product_name, qty in order_items:
             if product_type == "pizza":
                 pizza = session.query(Pizza).filter(Pizza.name == product_name).first()
                 if pizza:
                     pizza_price = get_price_for_Pizza(pizza.id, session)
                     total_price += pizza_price * qty
+                    pizza_count += qty
             elif product_type == "drink":
                 drink = session.query(Drink).filter(Drink.name == product_name).first()
                 if drink:
@@ -101,21 +96,46 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
             else:
                 raise ValueError(f"Unknown product type: {product_type}")
         
+        customer = session.query(Customer).get(customer_id)
+        birthday_applied = False
+        loyalty_applied = False
+
+        if apply_birthday:
+            birthday_applied = True
+            cheapest_pizza = (
+                session.query(Pizza.id, Pizza.name)
+                .join(PizzaIngredient)
+                .join(Ingredient)
+                .group_by(Pizza.id, Pizza.name)
+                .order_by(func.sum(Ingredient.cost))
+                .first()
+            )
+            if cheapest_pizza:
+                order_items.append(("pizza", cheapest_pizza.name, 1))
+            cheapest_drink = session.query(Drink.id, Drink.name).order_by(Drink.cost).first()
+            if cheapest_drink:
+                order_items.append(("drink", cheapest_drink.name, 1))
+        
+        customer.pizzas_ordered_count += pizza_count
+        if customer.pizzas_ordered_count >= 10:
+            total_price *= Decimal("0.90")  # 10% discount
+            customer.pizzas_ordered_count = 0
+            loyalty_applied = True
+
         # 2️⃣ Create the Order record
         new_order = Order(
             customer_id=customer_id,
             delivery_id=delivery_id,
-            total=total_price,
+            total=total_price.quantize(Decimal("0.01")),
             status="pending",
             order_time=datetime.now()
         )
         session.add(new_order)
-        session.flush()  # Ensures order.id is generated
+        session.flush()
 
         # 3️⃣ Add each order item
         for product_type, product_name, qty in order_items:
             product_id = get_product_id_by_name(product_type, product_name, session)
-            
             order_item = OrderItem(
                 order_id=new_order.id,
                 product_type=product_type,
@@ -128,16 +148,19 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
         if delivery_id is not None:
             deliverer = session.query(DeliveryPerson).get(delivery_id)
             if deliverer:
-                deliverer.available = 0  # mark unavailable
+                deliverer.available = 0
 
         session.commit()
-        return new_order.id
+        return {
+            'order_id': new_order.id,
+            'birthday_applied': birthday_applied,
+            'loyalty_applied': loyalty_applied
+        }
 
     except Exception as e:
         session.rollback()
-        print(f"Error creating order: {e}")
+        print(f"Order failed, rolled back: {e}")
         raise
-
 
 def get_product_id_by_name(product_type: str, product_name: str, session: Session):
     """Get product ID by name and type"""
@@ -155,7 +178,6 @@ def get_product_id_by_name(product_type: str, product_name: str, session: Sessio
     else:
         raise ValueError(f"{product_type} '{product_name}' not found in database")
 
-
 def make_deliverer_available(delivery_id: int):
     """Marks a deliverer available again (used by APScheduler)."""
     db_session = SessionLocal()
@@ -170,6 +192,66 @@ def make_deliverer_available(delivery_id: int):
         print(f"Error making deliverer available: {e}")
     finally:
         db_session.close()
+
+def get_top_pizzas(session, limit=3, days=30):
+    """Return top pizzas in last X days"""
+    from models import OrderItem, Order, Pizza
+    cutoff = datetime.now() - timedelta(days=days)
+    result = (
+        session.query(Pizza.name, func.sum(OrderItem.quantity).label("total_sold"))
+        .join(OrderItem, Pizza.id == OrderItem.product_id)
+        .join(Order, Order.id == OrderItem.order_id)
+        .filter(OrderItem.product_type == "pizza", Order.order_time >= cutoff)
+        .group_by(Pizza.name)
+        .order_by(func.sum(OrderItem.quantity).desc())
+        .limit(limit)
+        .all()
+    )
+    return result
+
+def get_undelivered_orders(session):
+    """Return orders not yet delivered"""
+    from models import Order
+    return session.query(Order).filter(Order.status != "delivered").all()
+
+def get_earnings_by_demographics(session):
+    """Return total earnings grouped by gender"""
+    from models import Order, Customer
+    return (
+        session.query(Customer.gender, func.sum(Order.total))
+        .join(Order, Customer.id == Order.customer_id)
+        .group_by(Customer.gender)
+        .all()
+    )
+
+def can_cancel_order(order):
+    """
+    Returns True if the order can still be cancelled.
+    For example: only if order status is 'pending' or 'in preparation'.
+    """
+    return order.status in ['pending', 'in preparation']
+
+def cancel_order_logic(session, order_id: int, customer_id: int):
+    """
+    Cancels an order if allowed and returns a result dict.
+    """
+    from models import Order, DeliveryPerson
+
+    order = session.query(Order).filter_by(id=order_id, customer_id=customer_id).first()
+    if not order:
+        return {'success': False, 'message': 'Order not found'}
+
+    if not can_cancel_order(order):
+        return {'success': False, 'message': 'Cannot cancel this order anymore'}
+
+    order.status = 'cancelled'
+
+    if order.delivery_id:
+        deliverer = session.query(DeliveryPerson).get(order.delivery_id)
+        if deliverer:
+            deliverer.available = 1
+
+    return {'success': True, 'message': f'Order #{order_id} cancelled successfully'}
 
 def print_menu():
     pizzas = get_pizza_menu()
@@ -190,10 +272,6 @@ def print_menu():
     print("\n🍰 Desserts:")
     for dessert in get_dessert_menu():
         print(f"- {dessert.name}: €{dessert.cost:.2f}")
-
-
-    
-            
 
 def get_price_for_Pizza(pizza_id: int, session: Session):
     """Calculate pizza price based on ingredients"""
@@ -221,19 +299,13 @@ def get_price_for_Pizza(pizza_id: int, session: Session):
     
     return Decimal("0.00")
 
-
-
-
 def get_customer_by_id(session: Session, customer_id: int):
-    
-   
+
     return session.query(Customer).filter_by(id=customer_id).first()
 
 def create_customer(session: Session, name: str, gender: str, birthdate, 
-                   address: str, postcode: str, city: str = None, country: str = None) -> int:
+                address: str, postcode: str, city: str = None, country: str = None) -> int:
     """Create a new customer and return their ID"""
-  
-    
     new_customer = Customer(
         name=name,
         gender=gender,
@@ -246,3 +318,67 @@ def create_customer(session: Session, name: str, gender: str, birthdate,
     session.add(new_customer)
     session.flush()
     return new_customer.id
+
+def apply_discount_code(session: Session, order_id: int, code: str, customer_id: int) -> bool:
+    """Apply discount code if valid and not used by this customer"""
+    
+    discount = session.query(DiscountCode).filter(
+        DiscountCode.code == code,
+        DiscountCode.is_valid == True
+    ).first()
+    
+    if not discount:
+        return False
+    
+    already_used = session.query(OrderDiscount).join(Order).filter(
+        OrderDiscount.discount_id == discount.id,
+        Order.customer_id == customer_id
+    ).first()
+    
+    if already_used:
+        return False
+    
+    if discount.expiry_date and discount.expiry_date < datetime.now().date():
+        return False
+    
+    order_discount = OrderDiscount(
+        order_id=order_id,
+        discount_id=discount.id
+    )
+    session.add(order_discount)
+    
+    order = session.query(Order).get(order_id)
+    order.total *= Decimal("0.90")
+    
+    return True
+
+def check_birthday_discount(session: Session, customer_id: int) -> dict:
+    """Check if today is customer's birthday and return free items"""
+    customer = session.query(Customer).get(customer_id)
+    today = datetime.now().date()
+    
+    if (customer.birthdate.month == today.month and 
+        customer.birthdate.day == today.day):
+
+        cheapest_pizza = (
+            session.query(Pizza.id, Pizza.name)
+            .join(PizzaIngredient)
+            .join(Ingredient)
+            .group_by(Pizza.id, Pizza.name)
+            .order_by(func.sum(Ingredient.cost))
+            .first()
+        )
+        
+        cheapest_drink = (
+            session.query(Drink.id, Drink.name)
+            .order_by(Drink.cost)
+            .first()
+        )
+        
+        return {
+            'is_birthday': True,
+            'free_pizza': cheapest_pizza,
+            'free_drink': cheapest_drink
+        }
+    
+    return {'is_birthday': False}
