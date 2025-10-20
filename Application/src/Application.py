@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
 from sqlalchemy import func
-from methodsORM import (get_pizza_menu, get_drink_menu, get_dessert_menu, 
+from methodsORM import (get_discount_info, get_pizza_menu, get_drink_menu, get_dessert_menu, 
                         SessionLocal, get_customer_by_id, create_customer, 
                         add_order, find_deliverer, get_customer_by_name_birthdate, 
                         make_deliverer_available, apply_discount_code, check_birthday_discount,
@@ -207,6 +207,7 @@ def confirmation():
     apply_birthday = session.get('apply_birthday', False)
     
     if not order_items:
+        flash('No items in cart', 'error')
         return redirect(url_for("menu"))
     
     db_session = SessionLocal()
@@ -217,10 +218,15 @@ def confirmation():
     loyalty_applied = False
     
     try:
+        # Get customer info
         customer = get_customer_by_id(db_session, customer_id)
+        if not customer:
+            raise ValueError("Customer not found")
         
+        # Find available deliverer for customer's postcode
         delivery_id = find_deliverer(db_session, customer.postcode)
         
+        # Create the order
         order_result = add_order(
             db_session, 
             customer_id, 
@@ -233,6 +239,7 @@ def confirmation():
         birthday_applied = order_result.get('birthday_applied', False)
         loyalty_applied = order_result.get('loyalty_applied', False)
         
+        # Apply discount code if provided (BEFORE commit)
         if discount_code:
             discount_applied = apply_discount_code(
                 db_session, 
@@ -240,23 +247,31 @@ def confirmation():
                 discount_code, 
                 customer_id
             )
-            if not discount_applied:
-                flash('Discount code invalid or already used', 'warning')
+            if discount_applied:
+                flash(f'Discount code "{discount_code}" applied successfully! 🎉', 'success')
+            else:
+                flash(f'Could not apply discount code "{discount_code}"', 'warning')
         
+        # Commit everything
         db_session.commit()
         
+        # Schedule deliverer to become available again (AFTER commit)
         if delivery_id:
             scheduler.add_job(
                 make_deliverer_available,
                 'date',
                 run_date=datetime.now() + timedelta(minutes=30),
-                args=[delivery_id]
+                args=[delivery_id],
+                id=f'deliverer_{delivery_id}_{order_id}',
+                replace_existing=True
             )
         
+        # Clear session data
         session.pop('order_items', None)
         session.pop('discount_code', None)
         session.pop('apply_birthday', None)
         
+        # Get final order details (with updated total if discount applied)
         from models import Order
         order = db_session.query(Order).get(order_id)
         
@@ -272,8 +287,43 @@ def confirmation():
     
     except Exception as e:
         db_session.rollback()
+        print(f"❌ Error processing order: {e}")
         flash(f'Error processing order: {str(e)}', 'error')
         return redirect(url_for("menu"))
+    finally:
+        db_session.close()
+
+@app.route("/validate_discount", methods=["POST"])
+def validate_discount():
+    """AJAX endpoint to validate discount code before order submission"""
+    if 'customer_id' not in session:
+        return {'valid': False, 'message': 'Not logged in'}, 401
+    
+    code = request.json.get('code', '').strip()
+    
+    if not code:
+        return {'valid': False, 'message': 'Please enter a discount code'}
+    
+    db_session = SessionLocal()
+    try:
+        info = get_discount_info(db_session, code)
+        
+        # Check if customer already used this code
+        from models import DiscountCode, OrderDiscount, Order
+        discount = db_session.query(DiscountCode).filter(
+            DiscountCode.code == code.upper()
+        ).first()
+        
+        if discount and info['valid']:
+            already_used = db_session.query(OrderDiscount).join(Order).filter(
+                OrderDiscount.discount_id == discount.id,
+                Order.customer_id == session['customer_id']
+            ).first()
+            
+            if already_used:
+                return {'valid': False, 'message': 'You have already used this discount code'}
+        
+        return info
     finally:
         db_session.close()
 
@@ -337,7 +387,7 @@ def customer_profile():
     
     birthday_info = check_birthday_discount(db_session, session['customer_id'])
     
-    from models import Order
+  
     total_orders = db_session.query(Order).filter(
         Order.customer_id == session['customer_id']
     ).count()

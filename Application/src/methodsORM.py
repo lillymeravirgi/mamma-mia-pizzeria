@@ -1,10 +1,11 @@
 from sqlalchemy import func, create_engine, Date
 from sqlalchemy.orm import Session, sessionmaker
-from models import DeliveryPerson, Dessert, Drink, Ingredient, Order, Pizza, OrderItem, PizzaIngredient, Customer
+from models import (DeliveryPerson, Dessert, Drink, Ingredient, Order, Pizza, 
+                    OrderItem, PizzaIngredient, Customer, DiscountCode, OrderDiscount)
 from decimal import Decimal
 from datetime import datetime, timedelta 
 
-engine = create_engine("mysql+pymysql://root:Ponzano05@localhost/pizza_ordering", echo=True)
+engine = create_engine("mysql+pymysql://root:HimPfSQL@localhost/pizza_ordering", echo=True)
 SessionLocal = sessionmaker(bind=engine)
 
 def get_pizza_menu():
@@ -65,19 +66,16 @@ def get_customer_by_name_birthdate(session: Session, name: str, date: Date):
 def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: int | None, apply_birthday: bool = False):
     """
     Create a new order with items, apply loyalty & birthday discounts, and return details.
-    Args:
-        session: SQLAlchemy session
-        customer_id: ID of the customer placing the order
-        order_items: list of tuples like (product_type, product_name, quantity)
-        delivery_id: ID of assigned DeliveryPerson or None
-
-    Returns:
-        dict: { 'order_id': int, 'birthday_applied': bool, 'loyalty_applied': bool }
     """
     try:
-        # 1️⃣ Calculate total
+        customer = session.query(Customer).get(customer_id)
+        birthday_applied = False
+        loyalty_applied = False
+        
+        # 1️⃣ Calculate base total (paid items only)
         total_price = Decimal("0.00")
         pizza_count = 0
+        
         for product_type, product_name, qty in order_items:
             if product_type == "pizza":
                 pizza = session.query(Pizza).filter(Pizza.name == product_name).first()
@@ -96,12 +94,11 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
             else:
                 raise ValueError(f"Unknown product type: {product_type}")
         
-        customer = session.query(Customer).get(customer_id)
-        birthday_applied = False
-        loyalty_applied = False
-
+        # 2️⃣ Apply birthday discount (free items - NO cost added)
         if apply_birthday:
             birthday_applied = True
+            
+            # Add cheapest pizza (FREE)
             cheapest_pizza = (
                 session.query(Pizza.id, Pizza.name)
                 .join(PizzaIngredient)
@@ -112,28 +109,37 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
             )
             if cheapest_pizza:
                 order_items.append(("pizza", cheapest_pizza.name, 1))
+            
+            # Add cheapest drink (FREE)
             cheapest_drink = session.query(Drink.id, Drink.name).order_by(Drink.cost).first()
             if cheapest_drink:
                 order_items.append(("drink", cheapest_drink.name, 1))
         
+        # Update customer pizza count and check loyalty discount
         customer.pizzas_ordered_count += pizza_count
+        
         if customer.pizzas_ordered_count >= 10:
             total_price *= Decimal("0.90")  # 10% discount
-            customer.pizzas_ordered_count = 0
+            customer.pizzas_ordered_count = 0  # Reset counter
             loyalty_applied = True
+        
 
-        # 2️⃣ Create the Order record
+
+        # Round final total
+        total_price = total_price.quantize(Decimal("0.01"))
+        
+        #Create the Order record
         new_order = Order(
             customer_id=customer_id,
             delivery_id=delivery_id,
-            total=total_price.quantize(Decimal("0.01")),
+            total=total_price,
             status="pending",
             order_time=datetime.now()
         )
         session.add(new_order)
         session.flush()
 
-        # 3️⃣ Add each order item
+        # 6️⃣ Add all order items (including free birthday items)
         for product_type, product_name, qty in order_items:
             product_id = get_product_id_by_name(product_type, product_name, session)
             order_item = OrderItem(
@@ -144,7 +150,7 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
             )
             session.add(order_item)
 
-        # 4️⃣ Update delivery person availability
+        # 7️⃣ Update delivery person availability
         if delivery_id is not None:
             deliverer = session.query(DeliveryPerson).get(delivery_id)
             if deliverer:
@@ -161,6 +167,101 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
         session.rollback()
         print(f"Order failed, rolled back: {e}")
         raise
+
+
+def apply_discount_code(session: Session, order_id: int, code: str, customer_id: int) -> bool:
+    """
+    Apply discount code if valid and not already used by this customer.
+    Returns True if discount was applied successfully.
+    """
+    
+    # Find the discount code
+    discount = session.query(DiscountCode).filter(
+        DiscountCode.code == code.upper(),  # Case-insensitive comparison
+        DiscountCode.is_valid == True
+    ).first()
+    
+    if not discount:
+        print(f"!!! Discount code '{code}' not found or invalid")
+        return False
+    
+    # Check if customer already used this discount code
+    already_used = session.query(OrderDiscount).join(Order).filter(
+        OrderDiscount.discount_id == discount.id,
+        Order.customer_id == customer_id
+    ).first()
+    
+    if already_used:
+        print(f"!!! Customer {customer_id} already used discount code '{code}'")
+        return False
+    
+    # Check if discount code has expired
+    if discount.expiry_date and discount.expiry_date < datetime.now().date():
+        print(f"!!!Discount code '{code}' expired on {discount.expiry_date}")
+        return False
+    
+    # Get the order
+    order = session.query(Order).get(order_id)
+    if not order:
+        print(f"!!! Order {order_id} not found")
+        return False
+    
+    # Store original total for logging
+    original_total = order.total
+    
+    # Apply 10% discount to order total
+    order.total = (order.total * Decimal("0.90")).quantize(Decimal("0.01"))
+    
+    # Link discount to order
+    order_discount = OrderDiscount(
+        order_id=order_id,
+        discount_id=discount.id
+    )
+    session.add(order_discount)
+    
+    print(f"✅ Applied discount code '{code}': €{original_total} → €{order.total}")
+    return True
+
+
+
+def check_birthday_discount(session: Session, customer_id: int) -> dict:
+    """
+    Check if today is customer's birthday and return info about free items.
+    """
+    customer = session.query(Customer).get(customer_id)
+    if not customer:
+        return {'is_birthday': False}
+    
+    today = datetime.now().date()
+    
+    # Check if today matches birthday (month and day)
+    if (customer.birthdate.month == today.month and 
+        customer.birthdate.day == today.day):
+        
+        # Get cheapest pizza
+        cheapest_pizza = (
+            session.query(Pizza)
+            .join(PizzaIngredient)
+            .join(Ingredient)
+            .group_by(Pizza.id, Pizza.name)
+            .order_by(func.sum(Ingredient.cost))
+            .first()
+        )
+        
+        # Get cheapest drink
+        cheapest_drink = (
+            session.query(Drink)
+            .order_by(Drink.cost)
+            .first()
+        )
+        
+        return {
+            'is_birthday': True,
+            'free_pizza': cheapest_pizza,
+            'free_drink': cheapest_drink
+        }
+    
+    return {'is_birthday': False}
 
 def get_product_id_by_name(product_type: str, product_name: str, session: Session):
     """Get product ID by name and type"""
@@ -216,7 +317,6 @@ def get_undelivered_orders(session):
 
 def get_earnings_by_demographics(session):
     """Return total earnings grouped by gender"""
-    from models import Order, Customer
     return (
         session.query(Customer.gender, func.sum(Order.total))
         .join(Order, Customer.id == Order.customer_id)
@@ -281,7 +381,7 @@ def get_price_for_Pizza(pizza_id: int, session: Session):
         .all()
     )
 
-    # `.all()` returns a list of tuples like [(1,), (2,), (3,)]
+   
     ingredient_ids = [id_tuple[0] for id_tuple in ingredient_ids]
 
     if not ingredient_ids:
@@ -319,66 +419,28 @@ def create_customer(session: Session, name: str, gender: str, birthdate,
     session.flush()
     return new_customer.id
 
-def apply_discount_code(session: Session, order_id: int, code: str, customer_id: int) -> bool:
-    """Apply discount code if valid and not used by this customer"""
+def get_discount_info(session: Session, code: str) -> dict:
+    """
+    Get information about a discount code without applying it.
+    Useful for validation before order creation.
+    """
+    from models import DiscountCode
     
     discount = session.query(DiscountCode).filter(
-        DiscountCode.code == code,
+        DiscountCode.code == code.upper(),
         DiscountCode.is_valid == True
     ).first()
     
     if not discount:
-        return False
-    
-    already_used = session.query(OrderDiscount).join(Order).filter(
-        OrderDiscount.discount_id == discount.id,
-        Order.customer_id == customer_id
-    ).first()
-    
-    if already_used:
-        return False
+        return {'valid': False, 'message': 'Invalid discount code'}
     
     if discount.expiry_date and discount.expiry_date < datetime.now().date():
-        return False
+        return {'valid': False, 'message': 'Discount code has expired'}
     
-    order_discount = OrderDiscount(
-        order_id=order_id,
-        discount_id=discount.id
-    )
-    session.add(order_discount)
-    
-    order = session.query(Order).get(order_id)
-    order.total *= Decimal("0.90")
-    
-    return True
+    return {
+        'valid': True,
+        'code': discount.code,
+        'expiry_date': discount.expiry_date,
+        'message': '10% discount will be applied'
+    }
 
-def check_birthday_discount(session: Session, customer_id: int) -> dict:
-    """Check if today is customer's birthday and return free items"""
-    customer = session.query(Customer).get(customer_id)
-    today = datetime.now().date()
-    
-    if (customer.birthdate.month == today.month and 
-        customer.birthdate.day == today.day):
-
-        cheapest_pizza = (
-            session.query(Pizza.id, Pizza.name)
-            .join(PizzaIngredient)
-            .join(Ingredient)
-            .group_by(Pizza.id, Pizza.name)
-            .order_by(func.sum(Ingredient.cost))
-            .first()
-        )
-        
-        cheapest_drink = (
-            session.query(Drink.id, Drink.name)
-            .order_by(Drink.cost)
-            .first()
-        )
-        
-        return {
-            'is_birthday': True,
-            'free_pizza': cheapest_pizza,
-            'free_drink': cheapest_drink
-        }
-    
-    return {'is_birthday': False}
