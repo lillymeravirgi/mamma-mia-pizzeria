@@ -295,7 +295,6 @@ def make_deliverer_available(delivery_id: int):
 
 def get_top_pizzas(session, limit=3, days=30):
     """Return top pizzas in last X days"""
-    from models import OrderItem, Order, Pizza
     cutoff = datetime.now() - timedelta(days=days)
     result = (
         session.query(Pizza.name, func.sum(OrderItem.quantity).label("total_sold"))
@@ -324,15 +323,17 @@ def get_salary_by_demographics(session):
 def can_cancel_order(order):
     """
     Returns True if the order can still be cancelled.
-    For example: only if order status is 'pending' or 'in preparation'.
+    when its been ordered less than 5 min ago 
     """
-    return order.status in ['pending', 'in preparation']
+    now = datetime.now()  
+    return (now - order.order_time) < timedelta(minutes=1)
+   
 
 def cancel_order_logic(session, order_id: int, customer_id: int):
+
     """
     Cancels an order if allowed and returns a result dict.
     """
-    from models import Order, DeliveryPerson
 
     order = session.query(Order).filter_by(id=order_id, customer_id=customer_id).first()
     if not order:
@@ -425,7 +426,6 @@ def get_discount_info(session: Session, code: str) -> dict:
     Get information about a discount code without applying it.
     Useful for validation before order creation.
     """
-    from models import DiscountCode
     
     discount = session.query(DiscountCode).filter(
         DiscountCode.code == code.upper(),
