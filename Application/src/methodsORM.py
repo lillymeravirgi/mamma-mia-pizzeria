@@ -72,7 +72,7 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
         birthday_applied = False
         loyalty_applied = False
         
-        # 1️⃣ Calculate base total (paid items only)
+        # Calculate total 
         total_price = Decimal("0.00")
         pizza_count = 0
         
@@ -94,11 +94,11 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
             else:
                 raise ValueError(f"Unknown product type: {product_type}")
         
-        # 2️⃣ Apply birthday discount (free items - NO cost added)
+        # Apply birthday discount - cheapest pizza&drink is added
         if apply_birthday:
             birthday_applied = True
             
-            # Add cheapest pizza (FREE)
+        
             cheapest_pizza = (
                 session.query(Pizza.id, Pizza.name)
                 .join(PizzaIngredient)
@@ -110,7 +110,7 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
             if cheapest_pizza:
                 order_items.append(("pizza", cheapest_pizza.name, 1))
             
-            # Add cheapest drink (FREE)
+          
             cheapest_drink = session.query(Drink.id, Drink.name).order_by(Drink.cost).first()
             if cheapest_drink:
                 order_items.append(("drink", cheapest_drink.name, 1))
@@ -119,16 +119,16 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
         customer.pizzas_ordered_count += pizza_count
         
         if customer.pizzas_ordered_count >= 10:
-            total_price *= Decimal("0.90")  # 10% discount
-            customer.pizzas_ordered_count = 0  # Reset counter
+            total_price *= Decimal("0.90")
+            customer.pizzas_ordered_count = 0  
             loyalty_applied = True
         
 
 
-        # Round final total
         total_price = total_price.quantize(Decimal("0.01"))
         
-        #Create the Order record
+
+      #DB is updated with order abd order items  
         new_order = Order(
             customer_id=customer_id,
             delivery_id=delivery_id,
@@ -139,7 +139,6 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
         session.add(new_order)
         session.flush()
 
-        # 6️⃣ Add all order items (including free birthday items)
         for product_type, product_name, qty in order_items:
             product_id = get_product_id_by_name(product_type, product_name, session)
             order_item = OrderItem(
@@ -150,7 +149,8 @@ def add_order(session, customer_id: int, order_items: list[tuple], delivery_id: 
             )
             session.add(order_item)
 
-        # 7️⃣ Update delivery person availability
+        # deliverer is made unavailable 
+        #scheduler in Application makes them avaialable again after 30 min
         if delivery_id is not None:
             deliverer = session.query(DeliveryPerson).get(delivery_id)
             if deliverer:
@@ -218,7 +218,7 @@ def apply_discount_code(session: Session, order_id: int, code: str, customer_id:
     )
     session.add(order_discount)
     
-    print(f"✅ Applied discount code '{code}': €{original_total} → €{order.total}")
+    print(f"Juhuuu Applied discount code '{code}': €{original_total} → €{order.total}")
     return True
 
 
