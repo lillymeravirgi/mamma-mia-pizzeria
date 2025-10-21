@@ -415,6 +415,30 @@ def staff_logout():
     flash('Staff logged out', 'success')
     return redirect(url_for("login"))
 
+@app.route("/mark_prepared/<int:order_id>", methods=["POST"])
+def mark_prepared(order_id):
+    if not session.get('is_staff'):
+        flash('Staff access only', 'error')
+        return redirect(url_for("login"))
+    
+    db_session = SessionLocal()
+    try:
+        order = db_session.query(Order).get(order_id)
+        if order and order.status not in ["prepared", "in delivery", "cancelled"]:
+            order.status = "prepared"
+            db_session.commit()
+            flash(f"Order #{order_id} marked as prepared.", "success")
+        else:
+            flash("Order cannot be marked as prepared.", "error")
+    except Exception as e:
+        db_session.rollback()
+        flash(f"Error updating order: {e}", "error")
+    finally:
+        db_session.close()
+    
+    return redirect(url_for("staff_dashboard"))
+
+
 if __name__ == "__main__":
     import os
     #make_all_drivers_available()

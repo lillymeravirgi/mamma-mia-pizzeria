@@ -122,30 +122,48 @@
             </tbody>
         </table>
 
-        <!-- Undelivered Orders -->
-        <h2>Undelivered Orders</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Order #</th>
-                    <th>Customer ID</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for order in undelivered %}
-                <tr>
-                    <td>{{ order.id }}</td>
-                    <td>{{ order.customer_id }}</td>
-                    <td>
-                        <span class="status status-{{ order.status | replace(' ', '-') }}">
-                            {{ order.status | capitalize }}
-                        </span>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+       
+<h2>Undelivered Orders</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Order #</th>
+            <th>Customer ID</th>
+            <th>Status</th>
+            <th>Actions</th> 
+        </tr>
+    </thead>
+    <tbody>
+    {% for order in undelivered %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.customer_id }}</td>
+            <td>
+                <span class="status status-{{ order.status | replace(' ', '-') }}">
+                    {{ order.status | capitalize }}
+                </span>
+            </td>
+            <td>
+                {% if order.status != "prepared" and order.status != "in delivery" and order.status != "cancelled" %}
+                <form method="POST" action="{{ url_for('mark_prepared', order_id=order.id) }}">
+                    <button type="submit" style="
+                        background-color: #28a745;
+                        color: white;
+                        padding: 6px 12px;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                    ">Mark as Prepared</button>
+                </form>
+                {% else %}
+                -
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
         
         <a class="logout-btn" href="{{ url_for('staff_logout') }}">Logout</a>
     </div>

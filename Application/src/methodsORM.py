@@ -5,7 +5,7 @@ from models import (DeliveryPerson, Dessert, Drink, Ingredient, Order, Pizza,
 from decimal import Decimal
 from datetime import datetime, timedelta 
 
-engine = create_engine("mysql+pymysql://root:Ponzano05@localhost/pizza_ordering", echo=True)
+engine = create_engine("mysql+pymysql://root:HimPfSQL@localhost/pizza_ordering", echo=True)
 SessionLocal = sessionmaker(bind=engine)
 
 def get_pizza_menu():
