@@ -70,17 +70,21 @@ def staff_dashboard():
         return redirect(url_for("login"))
     
     db_session = SessionLocal()
-    
     top_pizzas = get_top_pizzas(db_session, limit=3, days=30)
     undelivered = get_undelivered_orders(db_session)
-    salary = get_salary_by_demographics(db_session)
+    demographics = get_salary_by_demographics(db_session)
     
+    for row in demographics:
+        print(row)
+
     db_session.close()
     
-    return render_template("staff_dashboard.html",
-                         top_pizzas=top_pizzas,
-                         undelivered=undelivered,
-                         earnings=salary)
+    return render_template(
+        "staff_dashboard.html",
+        top_pizzas=top_pizzas,
+        earnings=demographics,
+        undelivered=undelivered
+    )
 
 @app.route("/forgotID", methods=["GET", "POST"])
 def forgot_id():

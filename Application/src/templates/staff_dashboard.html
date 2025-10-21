@@ -98,6 +98,29 @@
             {% endfor %}
             </tbody>
         </table>
+        
+        <!-- Salary by Gender, Age Group, and Postal Code -->
+        <h2>Average Salary by Gender, Age Group, and Postal Code</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Gender</th>
+                    <th>Age Group</th>
+                    <th>Postal Code</th>
+                    <th>Average Salary (€)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for gender, age_group, postcode, avg_salary in earnings %}
+                <tr>
+                    <td>{{ gender }}</td>
+                    <td>{{ age_group }}</td>
+                    <td>{{ postcode }}</td>
+                    <td>{{ "%.2f"|format(avg_salary) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
 
         <!-- Undelivered Orders -->
         <h2>Undelivered Orders</h2>
@@ -123,26 +146,7 @@
             {% endfor %}
             </tbody>
         </table>
-
-        <!-- Earnings by Gender -->
-        <h2>Earnings by Gender</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Gender</th>
-                    <th>Total Earnings (€)</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for gender, total in earnings %}
-                <tr>
-                    <td>{{ gender }}</td>
-                    <td>{{ total }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
+        
         <a class="logout-btn" href="{{ url_for('staff_logout') }}">Logout</a>
     </div>
 </body>

@@ -53,9 +53,9 @@ SELECT
         WHEN TIMESTAMPDIFF(YEAR, s.birthdate, CURDATE()) BETWEEN 36 AND 50 THEN '36-50'
         ELSE '51+'
     END AS age_group,
-    -- dp.postcode,
+    COALESCE(dp.postcode, 'N/A') AS postcode,
     AVG(s.salary) AS avg_salary
 FROM Staff s
--- LEFT JOIN DeliveryPerson dp ON s.id = dp.id
-GROUP BY s.gender, age_group -- dp.postcode
-ORDER BY s.gender, age_group; -- dp.postcode;
+LEFT JOIN DeliveryPerson dp ON s.id = dp.id
+GROUP BY s.gender, age_group, dp.postcode
+ORDER BY s.gender, age_group, dp.postcode;

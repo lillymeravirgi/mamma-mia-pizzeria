@@ -1,11 +1,11 @@
-from sqlalchemy import func, create_engine, Date,  select, case
+from sqlalchemy import func, create_engine, Date,  select, case, text 
 from sqlalchemy.orm import Session, sessionmaker
 from models import (DeliveryPerson, Dessert, Drink, Ingredient, Order, Pizza, 
                     OrderItem, PizzaIngredient, Customer, DiscountCode, OrderDiscount, Staff)
 from decimal import Decimal
 from datetime import datetime, timedelta 
 
-engine = create_engine("mysql+pymysql://root:HimPfSQL@localhost/pizza_ordering", echo=True)
+engine = create_engine("mysql+pymysql://root:Ponzano05@localhost/pizza_ordering", echo=True)
 SessionLocal = sessionmaker(bind=engine)
 
 def get_pizza_menu():
@@ -330,12 +330,33 @@ def get_undelivered_orders(session):
     return session.query(Order).filter(Order.status != "delivered").all()
 
 def get_salary_by_demographics(session):
-    """Return total earnings grouped by gender"""
-    return (
-        session.query(Staff.gender, func.sum(Staff.salary))
-        .group_by(Staff.gender)
+    """Return average salary grouped by gender, age group, and postal code."""
+
+    age_expr = func.timestampdiff(text("YEAR"), Staff.birthdate, func.curdate())
+
+    age_group_case = case(
+        (age_expr < 25, 'Under 25'),
+        (age_expr.between(25, 35), '25-35'),
+        (age_expr.between(36, 50), '36-50'),
+        else_='51+'
+    ).label('age_group')
+
+    postcode_label = func.coalesce(DeliveryPerson.postcode, 'N/A').label('postcode')
+
+    results = (
+        session.query(
+            Staff.gender,
+            age_group_case,
+            func.coalesce(DeliveryPerson.postcode, 'N/A').label('postcode'),
+            func.avg(Staff.salary).label('avg_salary')
+        )
+        .outerjoin(DeliveryPerson, Staff.id == DeliveryPerson.id)
+        .group_by(Staff.gender, age_group_case, 'postcode')
+        .order_by(Staff.gender, age_group_case, 'postcode')
         .all()
     )
+    
+    return results
 
 def can_cancel_order(order):
     """
