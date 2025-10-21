@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
+import os
 from models import DiscountCode, Order, OrderDiscount
 from methodsORM import (get_all_orders, get_discount_info, get_pizza_menu, get_drink_menu, get_dessert_menu, 
                         SessionLocal, get_customer_by_id, create_customer, 
-                        add_order, find_deliverer, get_customer_by_name_birthdate, 
+                        add_order, find_deliverer, get_customer_by_name_birthdate, make_all_drivers_available, 
                         make_deliverer_available, apply_discount_code, check_birthday_discount,
                         get_top_pizzas, get_undelivered_orders, get_salary_by_demographics,
                         can_cancel_order, cancel_order_logic)
@@ -11,12 +12,19 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
-scheduler = BackgroundScheduler()
-scheduler.start()
-atexit.register(lambda: scheduler.shutdown(wait=False))
+
 
 app = Flask(__name__)
 app.secret_key = 'pepper'
+
+scheduler = BackgroundScheduler()
+
+def start_scheduler():
+    scheduler.start()
+    atexit.register(lambda: scheduler.shutdown(wait=False))
+
+
+
 
 @app.route("/")
 def index():
@@ -404,4 +412,8 @@ def staff_logout():
     return redirect(url_for("login"))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    #make_all_drivers_available()
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        start_scheduler()
+    app.run(debug=True)  

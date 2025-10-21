@@ -44,7 +44,7 @@ def find_deliverer(session: Session, customer_postcode: str):
         session.query(DeliveryPerson)
         .filter(
             DeliveryPerson.postcode == customer_postcode,
-            DeliveryPerson.available == True 
+            DeliveryPerson.available == 1 
         )
         .first() 
     )
@@ -292,6 +292,23 @@ def make_deliverer_available(delivery_id: int):
         print(f"Error making deliverer available: {e}")
     finally:
         db_session.close()
+
+def make_all_drivers_available():
+    db_session = SessionLocal()
+    try:
+        all_deliverers = db_session.query(DeliveryPerson).all() 
+        for deliveryperson in all_deliverers:
+            deliveryperson.available = 1  
+            print(f"Deliverer #{deliveryperson.id} is now available again.")
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        print(f"Error making deliverers available: {e}")
+    finally:
+        db_session.close()
+
+
+
 
 def get_top_pizzas(session, limit=3, days=30):
     """Return top pizzas in last X days"""
