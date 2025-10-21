@@ -6,13 +6,13 @@ This is an application for Mamma Mia Pizzeria
 ## Project Structure
 
 - `pizza_project/Modelling/` – Database schema for the project.
-- `ddl_script.sql` – Run this to create the database tables.
-- `insert_data.sql` – Insert sample data into the tables.
-- `queries.sql` – Normal database queries for testing.
+- `pizza_project/ddl_script.sql` – Run this to create the database tables.
+- `pizza_project/insert_data.sql` – Insert sample data into the tables.
+- `pizza_project/queries.sql` – Database queries.
 
-- `Application/src/Application.py` – Main Flask application.
-- `Application/src/methodsORM.py` – SQLAlchemy ORM methods for querying the database.
-- `Application/src/templates/` – HTML templates for the dashboard.
+- `pizza_project/Application/src/Application.py` – Main Flask application.
+- `pizza_project/Application/src/methodsORM.py` – SQLAlchemy ORM methods for querying the database.
+- `pizza_project/Application/src/templates/` – HTML templates for the dashboard.
 
 
 ## Setup Instructions
