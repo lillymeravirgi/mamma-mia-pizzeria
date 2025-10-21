@@ -68,7 +68,8 @@
         <p><strong>Gender:</strong> {{ customer.gender | capitalize }}</p>
         <p><strong>Birthdate:</strong> {{ customer.birthdate }}</p>
         <p><strong>Address:</strong> {{ customer.address }}, {{ customer.city or "N/A" }}, {{ customer.country or "N/A" }}</p>
-        <p><strong>Total Orders Placed:</strong> {{ total_orders }}</p>
+        <p><strong>Total Orders Placed:</strong> {{ total_orders | length }}</p>
+
 
         {% if birthday_info.is_birthday %}
         <div class="highlight">🎉 Today is your birthday! You are eligible for a free pizza & drink! 🍕🥤</div>

@@ -1,11 +1,10 @@
-from decimal import Decimal
 from datetime import datetime, timedelta
-from sqlalchemy import func
+from models import DiscountCode, Order, OrderDiscount
 from methodsORM import (get_all_orders, get_discount_info, get_pizza_menu, get_drink_menu, get_dessert_menu, 
                         SessionLocal, get_customer_by_id, create_customer, 
                         add_order, find_deliverer, get_customer_by_name_birthdate, 
                         make_deliverer_available, apply_discount_code, check_birthday_discount,
-                        get_top_pizzas, get_undelivered_orders, get_earnings_by_demographics,
+                        get_top_pizzas, get_undelivered_orders, get_salary_by_demographics,
                         can_cancel_order, cancel_order_logic)
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from datetime import datetime, timedelta
@@ -66,14 +65,14 @@ def staff_dashboard():
     
     top_pizzas = get_top_pizzas(db_session, limit=3, days=30)
     undelivered = get_undelivered_orders(db_session)
-    earnings = get_earnings_by_demographics(db_session)
+    salary = get_salary_by_demographics(db_session)
     
     db_session.close()
     
     return render_template("staff_dashboard.html",
                          top_pizzas=top_pizzas,
                          undelivered=undelivered,
-                         earnings=earnings)
+                         earnings=salary)
 
 @app.route("/forgotID", methods=["GET", "POST"])
 def forgot_id():
@@ -218,15 +217,14 @@ def confirmation():
     loyalty_applied = False
     
     try:
-        # Get customer info
+        
         customer = get_customer_by_id(db_session, customer_id)
         if not customer:
             raise ValueError("Customer not found")
         
-        # Find available deliverer for customer's postcode
+        
         delivery_id = find_deliverer(db_session, customer.postcode)
         
-        # Create the order
         order_result = add_order(
             db_session, 
             customer_id, 
@@ -239,7 +237,7 @@ def confirmation():
         birthday_applied = order_result.get('birthday_applied', False)
         loyalty_applied = order_result.get('loyalty_applied', False)
         
-        # Apply discount code if provided (BEFORE commit)
+       
         if discount_code:
             discount_applied = apply_discount_code(
                 db_session, 
@@ -247,15 +245,12 @@ def confirmation():
                 discount_code, 
                 customer_id
             )
-            if discount_applied:
-                flash(f'Discount code "{discount_code}" applied successfully! 🎉', 'success')
-            else:
-                flash(f'Could not apply discount code "{discount_code}"', 'warning')
+            
         
-        # Commit everything
         db_session.commit()
         
-        # Schedule deliverer to become available again (AFTER commit)
+    
+    #ensures the deliveryperson is available again after 30 min
         if delivery_id:
             scheduler.add_job(
                 make_deliverer_available,
@@ -266,13 +261,13 @@ def confirmation():
                 replace_existing=True
             )
         
-        # Clear session data
+        
         session.pop('order_items', None)
         session.pop('discount_code', None)
         session.pop('apply_birthday', None)
         
         # Get final order details (with updated total if discount applied)
-        from models import Order
+       
         order = db_session.query(Order).get(order_id)
         
         return render_template("confirmation.html",
@@ -287,7 +282,7 @@ def confirmation():
     
     except Exception as e:
         db_session.rollback()
-        print(f"❌ Error processing order: {e}")
+        print(f"!!! Error processing order: {e}!!!")
         flash(f'Error processing order: {str(e)}', 'error')
         return redirect(url_for("menu"))
     finally:
@@ -309,7 +304,6 @@ def validate_discount():
         info = get_discount_info(db_session, code)
         
         # Check if customer already used this code
-        from models import DiscountCode, OrderDiscount, Order
         discount = db_session.query(DiscountCode).filter(
             DiscountCode.code == code.upper()
         ).first()
@@ -388,7 +382,7 @@ def customer_profile():
     birthday_info = check_birthday_discount(db_session, session['customer_id'])
     
   
-    total_orders = get_all_orders(session['customer_id'])
+    total_orders = get_all_orders(db_session, session['customer_id'])
 
     db_session.close()
     

@@ -1,7 +1,7 @@
-from sqlalchemy import func, create_engine, Date
+from sqlalchemy import func, create_engine, Date,  select, case
 from sqlalchemy.orm import Session, sessionmaker
 from models import (DeliveryPerson, Dessert, Drink, Ingredient, Order, Pizza, 
-                    OrderItem, PizzaIngredient, Customer, DiscountCode, OrderDiscount)
+                    OrderItem, PizzaIngredient, Customer, DiscountCode, OrderDiscount, Staff)
 from decimal import Decimal
 from datetime import datetime, timedelta 
 
@@ -200,7 +200,6 @@ def apply_discount_code(session: Session, order_id: int, code: str, customer_id:
         print(f"!!!Discount code '{code}' expired on {discount.expiry_date}")
         return False
     
-    # Get the order
     order = session.query(Order).get(order_id)
     if not order:
         print(f"!!! Order {order_id} not found")
@@ -312,15 +311,13 @@ def get_top_pizzas(session, limit=3, days=30):
 
 def get_undelivered_orders(session):
     """Return orders not yet delivered"""
-    from models import Order
     return session.query(Order).filter(Order.status != "delivered").all()
 
-def get_earnings_by_demographics(session):
+def get_salary_by_demographics(session):
     """Return total earnings grouped by gender"""
     return (
-        session.query(Customer.gender, func.sum(Order.total))
-        .join(Order, Customer.id == Order.customer_id)
-        .group_by(Customer.gender)
+        session.query(Staff.gender, func.sum(Staff.salary))
+        .group_by(Staff.gender)
         .all()
     )
 
@@ -387,7 +384,6 @@ def get_price_for_Pizza(pizza_id: int, session: Session):
     if not ingredient_ids:
         return Decimal("0.00")
 
-    # Calculate total ingredient cost
     total_cost = (
         session.query(func.sum(Ingredient.cost))
         .filter(Ingredient.id.in_(ingredient_ids))
@@ -419,10 +415,9 @@ def create_customer(session: Session, name: str, gender: str, birthdate,
     session.flush()
     return new_customer.id
 
-def get_all_orders( session: Session):
-     session.query(Order).filter(
-        Order.customer_id == session['customer_id']
-    ).count()
+def get_all_orders(db_session, customer_id):
+    return db_session.query(Order).filter(Order.customer_id == customer_id).all()
+
     
 
 def get_discount_info(session: Session, code: str) -> dict:

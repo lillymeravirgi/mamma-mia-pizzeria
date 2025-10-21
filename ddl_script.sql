@@ -56,6 +56,30 @@ CREATE TABLE Customer (
     pizzas_ordered_count INT NOT NULL DEFAULT 0
 );
 
+DELIMITER $$
+
+CREATE TRIGGER before_customer_insert
+BEFORE INSERT ON customer
+FOR EACH ROW
+BEGIN
+  IF NEW.birthdate > CURDATE() THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Birthdate cannot be in the future';
+  END IF;
+END$$
+
+CREATE TRIGGER before_customer_update
+BEFORE UPDATE ON customer
+FOR EACH ROW
+BEGIN
+  IF NEW.birthdate > CURDATE() THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Birthdate cannot be in the future';
+  END IF;
+END$$
+
+DELIMITER ;
+
 -- STAFF (parent table for all employees)
 CREATE TABLE Staff (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -86,7 +110,7 @@ CREATE TABLE `Order` (
     FOREIGN KEY(delivery_id) REFERENCES DeliveryPerson(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
--- ORDER ITEMS (supports pizzas, drinks, desserts)
+-- ORDER ITEMS lists all items of an order and conects them by orderID
 CREATE TABLE OrderItem (
     order_id INT NOT NULL,
     product_type ENUM('pizza','drink','dessert') NOT NULL,
@@ -105,7 +129,7 @@ CREATE TABLE DiscountCode (
     expiry_date DATE
 );
 
--- TABLE TO LINK DISCOUNTS WITH ORDERS
+-- tracks used codes and orders
 CREATE TABLE OrderDiscount (
     order_id INT NOT NULL,
     discount_id INT NOT NULL,

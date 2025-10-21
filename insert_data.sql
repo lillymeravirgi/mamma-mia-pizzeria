@@ -3,7 +3,6 @@ Usage:
     Run this script AFTER creating the schema with ddl_script.sql:
         mysql -u root -p pizza_ordering < insert_data.sql
     
-    UPDATED: Hawaiian pizza removed, data adjusted accordingly
 */
 
 INSERT INTO Ingredient (name, cost, is_vegan, is_vegetarian) VALUES
@@ -57,13 +56,14 @@ INSERT INTO Customer (name, gender, birthdate, address, postcode, city, country)
 
 INSERT INTO Staff (name, gender, role, salary, birthdate) VALUES
 ('Giovanni Verdi', 'male', 'chef', 2500.00, '1980-06-15'),
-('Luca Neri', 'male', 'driver', 1800.00, '1990-02-20'),
+('Pippi Langstrumpf', 'female', 'manager', 4000.00, '1996-02-20'),
 ('Giulia Rosa', 'female', 'driver', 1850.00, '1992-08-05'),
-('Sofia Blu', 'female', 'driver', 3000.00, '1975-03-25'),
-('Einstein', 'male', 'manager', 4000.00, '1879-03-14'),
-('Harry Potter', 'male', 'driver', 1900.00, '1999-02-02'),
+('Sofia Blu', 'female', 'driver', 1900.00, '1975-03-25'),
+('Einstein', 'male', 'driver', 1800.00, '1879-03-14'),
+('Harry Potter', 'male', 'driver', 1800.00, '1999-02-02'),
 ('Harold Töpfer', 'male', 'driver', 1900.00, '1999-02-02'),
-('Marco Gialli', 'male', 'cashier', 1700.00, '1988-11-10');
+('Marco Gialli', 'male', 'cashier', 1700.00, '1988-11-10'),
+;
 
 INSERT INTO DeliveryPerson (id, postcode, available) VALUES
 (7, '00100', TRUE), 
@@ -78,28 +78,27 @@ INSERT INTO DiscountCode (code, is_valid, expiry_date) VALUES
 ('LOYALTY2025', TRUE, '2025-12-31');
 
 INSERT INTO `Order` (customer_id, delivery_id, status, total) VALUES
--- 1-5: Mario Rossi
 (1, 2, 'delivered', 12.50),
 (1, 3, 'delivered', 18.20),
 (1, 2, 'in delivery', 9.80),
 (1, 3, 'pending', 15.00),
 (1, 2, 'cancelled', 7.50),
 
--- 6-10: Anna Bianchi
+
 (2, 3, 'delivered', 20.00),
 (2, 2, 'in delivery', 14.50),
 (2, 3, 'prepared', 16.30),
 (2, 2, 'delivered', 25.00),
 (2, 3, 'pending', 11.80),
 
--- 11-15: John Smith
+
 (3, 2, 'delivered', 22.50),
 (3, 3, 'in delivery', 17.00),
 (3, 2, 'delivered', 19.80),
 (3, 3, 'pending', 13.20),
 (3, 2, 'prepared', 21.50),
 
--- 16-20: Emma Johnson
+
 (4, 3, 'delivered', 15.50),
 (4, 2, 'in delivery', 12.70),
 (4, 3, 'delivered', 23.00),
@@ -107,28 +106,28 @@ INSERT INTO `Order` (customer_id, delivery_id, status, total) VALUES
 (4, 3, 'cancelled', 9.50);
 
 INSERT INTO OrderItem (order_id, product_type, product_id, quantity) VALUES
--- Mario Rossi orders
+
 (1, 'pizza', 1, 1), (1, 'drink', 1, 1), (1, 'dessert', 1, 1),
 (2, 'pizza', 2, 2), (2, 'drink', 3, 1),
 (3, 'pizza', 3, 1),
 (4, 'pizza', 4, 1), (4, 'dessert', 2, 1),
 (5, 'pizza', 1, 1),
 
--- Anna Bianchi orders
+
 (6, 'pizza', 2, 1), (6, 'drink', 2, 2),
 (7, 'pizza', 3, 2),
 (8, 'pizza', 3, 1), (8, 'dessert', 3, 1), (8, 'drink', 4, 1),
 (9, 'pizza', 4, 1), (9, 'drink', 1, 1),
 (10, 'pizza', 1, 1),
 
--- John Smith orders
+
 (11, 'pizza', 4, 1), (11, 'dessert', 3, 1),
 (12, 'pizza', 1, 2), (12, 'drink', 2, 1),
 (13, 'pizza', 2, 1), (13, 'dessert', 1, 1),
 (14, 'pizza', 3, 1), (14, 'drink', 1, 1),
 (15, 'pizza', 2, 1),
 
--- Emma Johnson orders
+
 (16, 'pizza', 1, 1), (16, 'dessert', 2, 1),
 (17, 'pizza', 2, 1), (17, 'drink', 3, 1),
 (18, 'pizza', 4, 1), (18, 'dessert', 3, 1),

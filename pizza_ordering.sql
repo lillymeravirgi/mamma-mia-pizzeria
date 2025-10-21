@@ -60,9 +60,6 @@ BEGIN
 END$$
 
 DELIMITER ;
---
--- Dumping data for table `customer`
---
 
 
 
